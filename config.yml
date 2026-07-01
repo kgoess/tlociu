@@ -32,21 +32,21 @@ strict_config: 1
 # tiny: default basic template engine
 # template_toolkit: TT
 
-template: "tiny"
+#template: "tiny"
+#engines:
+#  template:
+#    tiny:
+#      # Note: start_tag and end_tag are regexes
+#      start_tag: '<%'
+#      end_tag:   '%>'
+
+template: "template_toolkit"
 engines:
   template:
-    tiny:
+    template_toolkit:
       # Note: start_tag and end_tag are regexes
       start_tag: '<%'
       end_tag:   '%>'
-
-# template: "template_toolkit"
-# engines:
-#   template:
-#     template_toolkit:
-#       # Note: start_tag and end_tag are regexes
-#       start_tag: '<%'
-#       end_tag:   '%>'
 
 # session engine
 #

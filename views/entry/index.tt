@@ -1,0 +1,21 @@
+<% IF entry %>
+<!-- <div id="sidebar">
+    <h1>Posted at</h1>
+    <p><% entry.created_at | html_entity %></p>
+</div>
+-->
+<div id="content">
+    <div>
+        <a href="<% request.uri_for('/entry/'_ entry.id _ '/update') %> ">Update</a>&nbsp;|&nbsp;
+        <a href="<% request.uri_for('/entry/'_ entry.id _ '/delete') %> ">Delete</a>
+    <h2><% entry.title | html_entity %></h2>
+    <p>Watchlist notes <em><% entry.date_added.strftime("%a, %b %e, %Y") | html %></em>:<br><% entry.watchlist_notes | html_entity | html_line_break %></p>
+    <p>Watched notes:<br><% entry.watched_notes | html_entity | html_line_break %></p>
+    <% IF entry.date_watched %>
+        <p>Watched on <% entry.date_watched.strftime("%a, %b %e, %Y") %></p>
+    <% END %>
+    <p><em>Entry created: <% entry.created_at.ymd | html_entity %></em></p>
+<% ELSE %>
+    <p>Invalid entry.</p>
+<% END %>
+</div>

@@ -19,7 +19,13 @@ WriteMakefile(
     PREREQ_PM => {
         'Test::More' => 0,
         'YAML'       => 0,
+        'Class::Method::Modifiers' => 0,
         'Dancer2'     => 2.1.0,
+        'Dancer2::Plugin::DBIx::Class' => 2.1.0,
+        'DBIx::Class' => 0.082844,
+        'DBD::SQLite' => 0,
+        'DBIx::Class::Schema::Loader' => 0,
+        'DateTime::Format::SQLite' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'kg-Tlociu-*' },

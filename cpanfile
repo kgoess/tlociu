@@ -34,3 +34,8 @@ on "test" => sub {
     requires "HTTP::Request::Common" => "0";
 };
 
+requires "DBD::SQLite";
+requires "Dancer2::Plugin::DBIx::Class";
+requires "DBIx::Class::Schema::Loader";
+requires "DateTime::Format::SQLite";
+
