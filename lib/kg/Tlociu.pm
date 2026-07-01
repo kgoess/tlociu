@@ -99,19 +99,22 @@ post '/entry/:id/update' => sub {
 # delete
 get '/entry/:id/delete' => sub {
     my $id = route_parameters->get('id');
-    template 'entry/delete', { id => $id };
+    my $entry = resultset('Entry')->search({ user_id => 1, id => $id })->first
+        or halt qq{No entry found for id "$id"} ;
+    template 'entry/delete', { id => $id, title => $entry->title };
 };
 post '/entry/:id/delete' => sub {
     my $id = route_parameters->get('id');
     # Always default to not destroying data
-    my $delete_it = body_parameters->get('delete_it') // 0;
-    if( $delete_it ) {
-        # Do the deletion here
-        redirect uri_for "/";
-    } else {
-        # Display our entry again
+    my $delete_it = body_parameters->get('delete_it')
+        or redirect uri_for "/entry/$id";
+    if ($delete_it ne 'yes') {
         redirect uri_for "/entry/$id";
     }
+    my $entry = resultset('Entry')->search({ user_id => 1, id => $id })->first
+        or halt qq{No entry found for id "$id"} ;
+    $entry->delete;
+    redirect uri_for "/";
 };
 
 

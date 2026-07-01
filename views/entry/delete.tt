@@ -1,6 +1,6 @@
 <div id="delete">
-    <form method="post" action="<% request.uri_for('/delete/' _ id) %>">
-        <p>Delete entry <% id %>. Are you sure?</p>
+    <form method="post" action="<% request.uri_for('/entry/' _ id _ '/delete') %>">
+        <p>Delete entry for "<% title | html %>" #<% id %>. Are you sure?</p>
         <p>
             <input type="radio" id="yes" name="delete_it" value="yes">
             <label for="yes">Yes</label>
