@@ -1,3 +1,36 @@
+=head1 NAME
+
+kg::Tlociu - track watchlist and films seen (The Language Of Cinema Is Universal)
+
+=head1 SYNOPSIS
+
+In bin/app.psgi:
+
+    builder {
+        kg::Tlociu->to_app;
+    }
+
+then:
+
+    $ plackup -r bin/app.psgi
+
+=head1 DESCRIPTION
+
+I got frustrated with letterboxd. I just want a place to drop a note when I
+hear about a film that sounds interesting with when and where I heard of it.
+"Bob said watching this was the worst two hours of his life, sounds fun!"
+
+This is a Perl web app using Dancer2 and DBIx::Class with a SQLite data
+store.
+
+Connecting this with https://www.omdbapi.com/ or
+https://developer.themoviedb.org/reference/intro/getting-started will let me
+answer the question, "what do I want to watch tonight?"
+https://dev.to/zuplo/whats-the-best-movie-database-api-imdb-vs-tmdb-vs-omdb-b24
+
+
+=cut
+
 package kg::Tlociu;
 use Dancer2;
 use Dancer2::Plugin::DBIx::Class;
