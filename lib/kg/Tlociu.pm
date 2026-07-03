@@ -32,10 +32,13 @@ https://dev.to/zuplo/whats-the-best-movie-database-api-imdb-vs-tmdb-vs-omdb-b24
 =cut
 
 package kg::Tlociu;
-use Dancer2;
-use Dancer2::Plugin::DBIx::Class;
+
 use feature 'try';
 no warnings 'experimental::try';
+
+use DateTime;
+use Dancer2;
+use Dancer2::Plugin::DBIx::Class;
 
 our $VERSION = '0.1';
 
@@ -46,7 +49,10 @@ get '/' => sub {
 
 # create
 get '/entry/create' => sub {
-    template 'entry/create-update', { post_to => uri_for '/entry/create' };
+    var date_added => DateTime->now(time_zone => 'floating')->ymd('-');
+    template 'entry/create-update', {
+       post_to => uri_for('/entry/create'),
+    };
 };
 post '/entry/create' => sub {
     my $params = body_parameters();
@@ -61,6 +67,7 @@ post '/entry/create' => sub {
         try {
             my %create_params = (
                 user_id         => 1,
+                tmdb_id         => $params->get('tmdb_id'),
                 title           => $params->get('title'),
                 watchlist_notes => $params->get('watchlist_notes'),
                 date_added      => $params->get('date_added'),
@@ -89,7 +96,7 @@ get '/entry/:id' => sub {
 get '/entry/:id/update' => sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
-    var $_ => $entry->$_ foreach qw< title watchlist_notes watched_notes is_public >;
+    var $_ => $entry->$_ foreach qw< title tmdb_id watchlist_notes watched_notes is_public >;
     foreach my $field (qw< date_added date_watched >) {
         next unless $entry->$field;
         var $field => DateTime::Format::SQLite->format_date($entry->$field);

@@ -10,7 +10,7 @@
 <body>
 <div id="menu">
     <a href="<% request.uri_for('/') %>">List All Entries</a>&nbsp;|&nbsp;
-    <a href="<% request.uri_for('/create') %>">Create New Entry</a>
+    <a href="<% request.uri_for('/entry/create') %>">Create New Entry</a>
 </div>
 
 <% content %>

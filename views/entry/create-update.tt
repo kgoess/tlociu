@@ -1,11 +1,13 @@
 <div id="create-update">
     <form method="post" action="<% post_to %>">
         <label for="title">Title</label>
-        <input type="text" name="title" id="title" value="<% vars.title | uri %>"><br>
+        <input type="text" name="title" id="title" value="<% vars.title | html %>" required><br>
+        <label for="title">TMDB ID</label>
+        <input type="text" name="tmdb_id" id="tmdb_id" value="<% vars.tmdb_id | html %>" required><br>
         <label for="watchlist_notes">Watchlist Notes</label>
         <textarea name="watchlist_notes" id="watchlist_notes" cols="50" rows="10"><% vars.watchlist_notes | html %></textarea><br>
         <label for="date_added">Date Added</label>
-        <input type="date" name="date_added" id="date_added" value="<% vars.date_added | html %>"><br>
+        <input type="date" name="date_added" id="date_added" value="<% vars.date_added %>" required><br>
         <label for="watched_notes">Watched Notes</label>
         <textarea name="watched_notes" id="content" cols="50" rows="10"><% vars.watched_notes | html %></textarea><br>
         <label for="date_watched">Date Watched</label>
