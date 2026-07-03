@@ -4,16 +4,70 @@ use warnings;
 
 use parent qw/TMDB::Movie/;
 
+use JSON::MaybeXS qw/encode_json decode_json/;
+
 sub new {
     my ($class) = shift;
 
     my $self = $class->SUPER::new(@_);
 
-    return bless $self, $class;
+    bless $self, $class;
+
+    return $self;
 }
 
-sub info {
-    my ($self) = @_;
+sub init_from_db ($self, $resultset) {
+
+    my $tmdb_id = $self->id;
+
+    my $row = $resultset->search({tmdb_id => $self->id})->first
+        or return;
+
+    $self->{_initted_from_db} = 1;
+    $self->{_info}      = decode_json($row->info);
+    $self->{_cast}      = decode_json($row->movie_cast);
+    $self->{_trailers}  = decode_json($row->trailers);
+
+    # unused
+    #$self->{_images}   = $row->images;
+    #$self->{_keywords} = $row->keywords;
+    #$self->{_releases} = $row->releases;
+    #$self->{_translations} = $row->translations;
+    #$self->{_changes} = $row->changes;
+    #$self->{_version} = $row->version;
+    #$self->{_alternative_titles} = $row->alternative_titles;
+}
+
+=head2 maybe_save_to_db
+
+$resultset is from Dancer2's DSL resultset('Movie')
+
+=cut
+
+sub maybe_save_to_db ($self, $resultset) {
+
+    return if $self->{_initted_from_db};
+
+    $resultset->create({
+        tmdb_id    => $self->id,
+        info       => encode_json($self->info),
+        title      => encode_json($self->title),
+        movie_cast => encode_json($self->_cast),
+        trailers   => encode_json($self->trailers),
+        # unused
+        # images
+        # keywords
+        # releases
+        # translations
+        # changes
+        # version
+        # alternative_titles
+    });
+
+    $self->{_initted_from_db} = 1;
+}
+
+sub info ($self) {
 
     if (!$self->{_info}) {
         $self->{_info} = $self->SUPER::info;
@@ -40,15 +94,7 @@ sub trailers {
     return $self->{_trailers};
 }
 
-sub images {
-    my ($self) = @_;
-
-    if (!$self->{_images}) {
-        $self->{_images} = $self->SUPER::images;
-    }
-    return $self->{_images};
-}
-
+sub images { ... }
 sub keywords { ... }
 sub releases { ... }
 sub translations { ... }

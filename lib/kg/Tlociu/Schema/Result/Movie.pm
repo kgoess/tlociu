@@ -1,12 +1,12 @@
 use utf8;
-package kg::Tlociu::Schema::Result::Entry;
+package kg::Tlociu::Schema::Result::Movie;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-kg::Tlociu::Schema::Result::Entry
+kg::Tlociu::Schema::Result::Movie
 
 =cut
 
@@ -27,11 +27,11 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<entries>
+=head1 TABLE: C<movies>
 
 =cut
 
-__PACKAGE__->table("entries");
+__PACKAGE__->table("movies");
 
 =head1 ACCESSORS
 
@@ -46,36 +46,59 @@ __PACKAGE__->table("entries");
   data_type: 'integer'
   is_nullable: 0
 
-=head2 user_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 title
 
   data_type: 'text'
   is_nullable: 0
 
-=head2 watchlist_notes
+=head2 info
 
   data_type: 'text'
   is_nullable: 1
 
-=head2 date_added
-
-  data_type: 'timestamp'
-  default_value: current_timestamp
-  is_nullable: 1
-
-=head2 watched_notes
+=head2 movie_cast
 
   data_type: 'text'
   is_nullable: 1
 
-=head2 date_watched
+=head2 trailers
 
-  data_type: 'timestamp'
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 images
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 keywords
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 releases
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 translations
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 changes
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 version
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 alternative_titles
+
+  data_type: 'text'
   is_nullable: 1
 
 =head2 is_deleted
@@ -84,11 +107,11 @@ __PACKAGE__->table("entries");
   default_value: 0
   is_nullable: 0
 
-=head2 is_public
+=head2 modified_at
 
-  data_type: 'integer'
-  default_value: 0
-  is_nullable: 0
+  data_type: 'timestamp'
+  default_value: current_timestamp
+  is_nullable: 1
 
 =head2 created_at
 
@@ -103,26 +126,36 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "tmdb_id",
   { data_type => "integer", is_nullable => 0 },
-  "user_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "title",
   { data_type => "text", is_nullable => 0 },
-  "watchlist_notes",
+  "info",
   { data_type => "text", is_nullable => 1 },
-  "date_added",
+  "movie_cast",
+  { data_type => "text", is_nullable => 1 },
+  "trailers",
+  { data_type => "text", is_nullable => 1 },
+  "images",
+  { data_type => "text", is_nullable => 1 },
+  "keywords",
+  { data_type => "text", is_nullable => 1 },
+  "releases",
+  { data_type => "text", is_nullable => 1 },
+  "translations",
+  { data_type => "text", is_nullable => 1 },
+  "changes",
+  { data_type => "text", is_nullable => 1 },
+  "version",
+  { data_type => "text", is_nullable => 1 },
+  "alternative_titles",
+  { data_type => "text", is_nullable => 1 },
+  "is_deleted",
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "modified_at",
   {
     data_type     => "timestamp",
     default_value => \"current_timestamp",
     is_nullable   => 1,
   },
-  "watched_notes",
-  { data_type => "text", is_nullable => 1 },
-  "date_watched",
-  { data_type => "timestamp", is_nullable => 1 },
-  "is_deleted",
-  { data_type => "integer", default_value => 0, is_nullable => 0 },
-  "is_public",
-  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "created_at",
   {
     data_type     => "timestamp",
@@ -143,42 +176,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 UNIQUE CONSTRAINTS
 
-=head2 C<user_id_title_unique>
-
-=over 4
-
-=item * L</user_id>
-
-=item * L</title>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("user_id_title_unique", ["user_id", "title"]);
-
-=head1 RELATIONS
-
-=head2 user
-
-Type: belongs_to
-
-Related object: L<kg::Tlociu::Schema::Result::User>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "user",
-  "kg::Tlociu::Schema::Result::User",
-  { id => "user_id" },
-  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-03 21:02:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cApvu4czFPPAInXPZLrT6Q
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-03 21:14:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0xfHYf/0yMkEOHe6MCaX2g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

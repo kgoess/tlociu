@@ -18,6 +18,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+        'TMDB' => '1.2.2',
         'YAML'       => 0,
         'Class::Method::Modifiers' => 0,
         'Dancer2'     => 2.1.0,

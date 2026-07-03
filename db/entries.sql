@@ -1,5 +1,6 @@
 CREATE TABLE entries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tmdb_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     watchlist_notes TEXT,

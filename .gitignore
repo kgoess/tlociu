@@ -1,5 +1,5 @@
-*.swp
-^blib
+*.sw?
+blib
 pm_to_blib
 db/tlociu.sqlite
 MYMETA.json
