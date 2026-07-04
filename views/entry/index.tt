@@ -21,19 +21,31 @@
 -->
 
 <div id="content" class="entry-detail">
-    <div class="entry-actions">
-        <a href="<% request.uri_for('/entry/'_ entry.id _ '/update') %>">Update</a>
-        <a class="danger" href="<% request.uri_for('/entry/'_ entry.id _ '/delete') %>">Delete</a>
+    <div class="detail-hero" <% IF movie.backdrop %>style="background-image: linear-gradient(rgba(255,255,255,0.80), rgba(255,255,255,0.93)), url('<% base_url _ 'w1280' _ movie.backdrop | html %>');"<% END %>>
+        <div class="entry-actions">
+            <a href="<% request.uri_for('/entry/'_ entry.id _ '/update') %>">Update</a>
+            <a class="danger" href="<% request.uri_for('/entry/'_ entry.id _ '/delete') %>">Delete</a>
+        </div>
+        <h1><% entry.title | html_entity %></h1>
+        <% IF movie.tagline %>
+        <p class="tagline"><% movie.tagline %></p>
+        <% END %>
     </div>
-    <h1><% entry.title | html_entity %></h1>
-    <% IF movie.tagline %>
-    <p class="tagline"><% movie.tagline %></p>
-    <% END %>
 
     <div class="detail-body">
         <img class="poster" src="<% base_url _ 'w500' _ movie.poster | html %>" alt="<% entry.title | html %> poster">
         <div class="detail-text">
             <p><% movie.overview %></p>
+
+            <h3>Directed by</h3>
+            <p><% movie.director.join(', ') | html %></p>
+
+            <h3>Written by</h3>
+            <p><% movie.writer.unique.join(', ') | html %></p>
+
+            <h3>Starring</h3>
+            <p><% movie.actors.join(', ') | html %></p>
+
             <p><a class="button" href="<% trailer %>">▶ Play Trailer</a></p>
 
             <h3>Watchlist notes <em>(<% entry.date_added.strftime("%a, %b %e, %Y") | html %>)</em></h3>

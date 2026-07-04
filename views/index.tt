@@ -3,14 +3,21 @@
     <ul class="entry-list">
     <% FOREACH entry IN entries %>
         <li class="entry-card">
-            <h2 class="entry-title"><a href="/entry/<% entry.id %>"><% entry.title | html_entity %></a></h2>
-            <p class="entry-meta">Created <% entry.created_at | html_entity %></p>
-            <% IF entry.watchlist_notes %>
-            <p class="entry-notes"><% entry.watchlist_notes | html_entity %></p>
+            <% IF posters.item(entry.id) %>
+            <a class="thumb-link" href="/entry/<% entry.id %>">
+                <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
+            </a>
             <% END %>
-            <% IF entry.watched_notes %>
-            <p class="entry-notes"><% entry.watched_notes | html_entity %></p>
-            <% END %>
+            <div class="entry-card-body">
+                <h2 class="entry-title"><a href="/entry/<% entry.id %>"><% entry.title | html_entity %></a></h2>
+                <p class="entry-meta">Created <% entry.created_at | html_entity %></p>
+                <% IF entry.watchlist_notes %>
+                <p class="entry-notes"><% entry.watchlist_notes | html_entity %></p>
+                <% END %>
+                <% IF entry.watched_notes %>
+                <p class="entry-notes"><% entry.watched_notes | html_entity %></p>
+                <% END %>
+            </div>
         </li>
     <% END %>
     </ul>

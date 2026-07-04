@@ -52,7 +52,17 @@ my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => 1);
 # (maybe should be /entry/ ?)
 get '/' => sub {
     my @entries = resultset('Entry')->search({ user_id => 1 })->all;
-    template 'index', { entries => \@entries };
+    my %posters;
+    foreach my $entry (@entries) {
+        my $movie = $TMDB->movie(id => $entry->tmdb_id);
+        $movie->init_from_db(resultset('Movie'));
+        $posters{$entry->id} = $movie->poster;
+    }
+    template 'index', {
+        entries  => \@entries,
+        posters  => \%posters,
+        base_url => 'https://image.tmdb.org/t/p/',
+    };
 };
 
 # get (basic entry display)
