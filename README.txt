@@ -1,4 +1,10 @@
+Track watchlist and films seen (The Language Of Cinema Is Universal)
 
+See notes in lib/kg/Tlociu.pm
+
+See the screenshots/ directory for screenshots.
+
+Some notes:
 eval "$(perl -Mlocal::lib=/var/lib/tlociu)"
 
 dbicdump -o dump_directory=./lib \
