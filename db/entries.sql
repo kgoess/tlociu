@@ -3,6 +3,7 @@ CREATE TABLE entries (
     tmdb_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
+    title_lc TEXT NOT NULL,
     watchlist_notes TEXT,
     date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     watched_notes TEXT,
@@ -13,5 +14,6 @@ CREATE TABLE entries (
     -- modified_at TIMESTAMP
     -- deleted_at TIMESTAMP
     UNIQUE(user_id, title)
+    UNIQUE(user_id, title_lc)
     FOREIGN KEY (user_id) REFERENCES users(id)
 );

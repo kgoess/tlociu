@@ -1,0 +1,84 @@
+<div id="create-search">
+    <form id="create-search-form" method="post"
+        <div class="field">
+            <label for="title">Title</label>
+            <input type="text" name="title" id="title" required>
+            <input type="submit" value="search">
+        </div>
+    </form>
+</div>
+&nbsp;
+<hr>
+&nbsp;
+<div id="create-search-results">
+</div>
+
+
+<script>
+    // 1. Select the form element
+    const form = document.getElementById('create-search-form');
+
+    // 2. Listen for the submit event
+    form.addEventListener('submit', async function(event) {
+      // 3. Stop the browser from submitting natively and reloading
+      event.preventDefault();
+
+      // 4. Automatically capture all form input values
+      const formData = new FormData(form);
+
+      try {
+        // 5. Send data via an asynchronous API call
+        const response = await fetch('<% search_url %>', {
+          method: 'POST',
+          body: formData // Handled automatically by Fetch API
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          updateResults(result);
+        } else {
+          console.error('Server error:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Network error:', error);
+      }
+    });
+
+    function updateResults(results) {
+        const resultsEl = document.getElementById('create-search-results');
+
+        const foundWatchlistItems = [];
+        if (results.watchlist_entries.length) {
+            const divEl = document.createElement('div');
+            divEl.classList.add('section-title');
+            divEl.textContent = 'Already On Your Watchlist:';
+            foundWatchlistItems.push(divEl);
+        }
+            
+        // this might be better as a moustache template or whatever js template
+        // they're using these days
+        for (const res of results.watchlist_entries) {
+            const divEl = document.createElement('div');
+            divEl.classList.add('entry-card-body');
+            const h2El = document.createElement('h2');
+            h2El.classList.add('result-entry-title');
+            const aEl = document.createElement('a');
+            aEl.setAttribute('href', '<% request.uri_for('/entry/') %>' + res.id);
+            aEl.textContent = res.title;
+            const spanEl = document.createElement('span');
+            spanEl.classList.add('entry-meta');
+            spanEl.textContent = ' Created ' + res.created_at;
+            const pEl2 = document.createElement('p');
+            // TODO truncate watchlist_notes and make it expandable use toggleExpandableText
+            pEl2.classList.add('entry-notes');
+            pEl2.textContent = res.watchlist_notes;
+            divEl.append(h2El, aEl, spanEl, pEl2);
+
+            foundWatchlistItems.push(divEl);
+        }
+console.log(foundWatchlistItems);
+
+        resultsEl.replaceChildren(...foundWatchlistItems);
+    }
+</script>
+

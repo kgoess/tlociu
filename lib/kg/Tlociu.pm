@@ -65,6 +65,34 @@ get '/' => sub {
     };
 };
 
+# handles the AJAX search from /entry/create-search
+post '/search-title' => sub {
+     my $title = body_parameters->get('title');
+     say STDERR "incoming title is $title";
+
+    my @watchlist_results = resultset('Entry')->search({
+        user_id => 1,
+        title_lc => { like => lc("%$title%") },
+    });
+
+    my @watchlist_entries;
+    foreach my $res (@watchlist_results) {
+        my $movie = $TMDB->movie(id => $res->tmdb_id);
+        $movie->init_from_db(resultset('Movie'));
+        push @watchlist_entries, {
+            title           => $res->title,
+            id              => $res->id,
+            created_at      => $res->created_at->ymd,
+            watchlist_notes => $res->watchlist_notes,
+            poster_img      => 'https://image.tmdb.org/t/p/' . $movie->poster,
+        }
+    }
+
+    send_as JSON => {
+        watchlist_entries => \@watchlist_entries,
+    };
+};
+
 # get (basic entry display)
 # :id must be typed as Int or this route also swallows GET /entry/create,
 # since Dancer2 matches routes in declaration order
@@ -96,6 +124,11 @@ get '/entry/:id[Int]' => sub {
    };
 };
 
+get '/entry/create-search' => sub {
+    template 'entry/create-search', {
+        search_url => uri_for('/search-title'),
+    };
+};
 
 # create
 get '/entry/create' => sub {

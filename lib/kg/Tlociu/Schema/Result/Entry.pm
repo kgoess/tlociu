@@ -57,6 +57,11 @@ __PACKAGE__->table("entries");
   data_type: 'text'
   is_nullable: 0
 
+=head2 title_lc
+
+  data_type: 'text'
+  is_nullable: 0
+
 =head2 watchlist_notes
 
   data_type: 'text'
@@ -107,6 +112,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "title",
   { data_type => "text", is_nullable => 0 },
+  "title_lc",
+  { data_type => "text", is_nullable => 0 },
   "watchlist_notes",
   { data_type => "text", is_nullable => 1 },
   "date_added",
@@ -145,6 +152,20 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
+=head2 C<user_id_title_lc_unique>
+
+=over 4
+
+=item * L</user_id>
+
+=item * L</title_lc>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("user_id_title_lc_unique", ["user_id", "title_lc"]);
+
 =head2 C<user_id_title_unique>
 
 =over 4
@@ -177,9 +198,32 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-03 21:02:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cApvu4czFPPAInXPZLrT6Q
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-04 18:17:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XFDBd3rgArsppfzM9/JBOA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+# # Hook for new inserts
+sub insert {
+    my $self = shift;
+
+    say STDERR "*** here in before_create ***";
+    # Check if a username is set, then set the lowercase version
+    if (defined $self->title) {
+        $self->title_lc( lc($self->title) );
+    }
+
+    return $self->next::method(@_);
+}
+
+# Hook for updates, if you want to keep it synced when the main column changes
+sub update {
+    my $self = shift;
+
+    if ($self->is_column_changed('title') && defined $self->title) {
+        $self->title_lc( lc($self->title) );
+    }
+
+    return $self->next::method(@_);
+}
+
 1;

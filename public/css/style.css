@@ -76,6 +76,11 @@ h3 { font-size: 1rem; }
     font-size: 0.95rem;
 }
 
+.result-entry-title {
+    margin: .5em 0 0.5em;
+}
+
+
 /* Entry list */
 
 .entry-list {
@@ -154,6 +159,13 @@ h3 { font-size: 1rem; }
 
 .detail-hero h1 {
     margin: 0.75rem 0 0;
+}
+
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.01em;
 }
 
 .tagline {
