@@ -101,6 +101,14 @@ sub youtube_trailer ($self) {
     return 'http://youtu.be/' . $trailer->{source};
 }
 
+# the parent class regex-matches any crew job containing "Director",
+# which also picks up e.g. Director of Photography, Assistant Director
+sub director ($self) {
+    my @names = map { $_->{name} } grep { $_->{job} eq 'Director' } $self->crew;
+    return @names if wantarray;
+    return \@names;
+}
+
 sub images { ... }
 sub keywords { ... }
 sub releases { ... }
