@@ -112,6 +112,11 @@ h3 { font-size: 1rem; }
     min-width: 0;
 }
 
+.entry-card-header-oneline {
+    display: flex;
+    gap: 1rem;
+}
+
 .entry-card .entry-title {
     margin: 0 0 0.25rem;
 }
@@ -120,6 +125,11 @@ h3 { font-size: 1rem; }
     margin: 0 0 0.5rem;
     font-size: 0.85rem;
     color: var(--muted);
+}
+
+.entry-meta-results-header-oneline {
+    flex: 1;  /* pushes 'Add to Watchlist' to the far right, is probably not
+                 the Right Way to do that */
 }
 
 .entry-notes {
@@ -240,6 +250,11 @@ form label {
     font-weight: 600;
     font-size: 0.9rem;
     margin-bottom: 0.25rem;
+}
+
+form label.radiobutton {
+    display: inline;
+    margin-left: 15px;
 }
 
 form .field.inline label {

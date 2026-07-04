@@ -51,9 +51,13 @@ my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => 1);
 # get / front page, list entries
 # (maybe should be /entry/ ?)
 get '/' => sub {
-    my @entries = resultset('Entry')->search({ user_id => 1 })->all;
+    my @entries = resultset('Entry')->search(
+        { user_id => 1 },
+        { order_by => [ qw/watched title/ ] },
+    )->all;
     my %posters;
     foreach my $entry (@entries) {
+        # TODO might be faster/easier to store the poster in the entries table
         my $movie = $TMDB->movie(id => $entry->tmdb_id);
         $movie->init_from_db(resultset('Movie'));
         $posters{$entry->id} = $movie->poster;
@@ -67,29 +71,35 @@ get '/' => sub {
 
 # handles the AJAX search from /entry/create-search
 post '/search-title' => sub {
-     my $title = body_parameters->get('title');
-     say STDERR "incoming title is $title";
+    my $title = body_parameters->get('title');
 
+    # first search for any existing watchlist entries so they don't get dups
     my @watchlist_results = resultset('Entry')->search({
         user_id => 1,
         title_lc => { like => lc("%$title%") },
     });
-
     my @watchlist_entries;
     foreach my $res (@watchlist_results) {
-        my $movie = $TMDB->movie(id => $res->tmdb_id);
-        $movie->init_from_db(resultset('Movie'));
+        #my $movie = $TMDB->movie(id => $res->tmdb_id);
+        #$movie->init_from_db(resultset('Movie'));
         push @watchlist_entries, {
             title           => $res->title,
             id              => $res->id,
             created_at      => $res->created_at->ymd,
             watchlist_notes => $res->watchlist_notes,
-            poster_img      => 'https://image.tmdb.org/t/p/' . $movie->poster,
+            #poster_img      => 'https://image.tmdb.org/t/p/' . $movie->poster,
         }
     }
+    my %on_watchlist;
+    $on_watchlist{$_->tmdb_id} = 1 for @watchlist_results;
+
+    # now ask TMDB directly
+    my @tmdb_results = $TMDB->search->movie($title);
+    @tmdb_results = grep { ! $on_watchlist{$_->{id}} } @tmdb_results;
 
     send_as JSON => {
         watchlist_entries => \@watchlist_entries,
+        tmdb_results => \@tmdb_results,
     };
 };
 
@@ -127,11 +137,20 @@ get '/entry/:id[Int]' => sub {
 get '/entry/create-search' => sub {
     template 'entry/create-search', {
         search_url => uri_for('/search-title'),
+        img_base_url    => 'https://image.tmdb.org/t/p/',
     };
 };
 
 # create
 get '/entry/create' => sub {
+    my $params = query_parameters();
+    if ($params->{tmdb_id} && $params->{tmdb_id} =~ /^[0-9]{,20}$/) {
+        my $movie = $TMDB->movie(id => $params->{tmdb_id});
+        $movie->init_from_db(resultset('Movie'));
+        var tmdb_id => $movie->id;
+        var title => $movie->title;
+    }
+
     var date_added => DateTime->now(time_zone => 'floating')->ymd('-');
     template 'entry/create-update', {
        post_to => uri_for('/entry/create'),
@@ -146,12 +165,17 @@ post '/entry/create' => sub {
         warning "Missing parameters: " . var 'missing';
         forward '/entry/create', {}, { method => 'GET' };
     }
+
+    my $movie = $TMDB->movie(id => $params->{tmdb_id});
+    $movie->init_from_db(resultset('Movie'));
+    $movie->maybe_save_to_db(resultset('Movie'));
+
     my $entry = do {
         try {
             my %create_params = (
                 user_id         => 1,
-                tmdb_id         => $params->get('tmdb_id'),
-                title           => $params->get('title'),
+                tmdb_id         => $movie->id,
+                title           => $movie->title,
                 watchlist_notes => $params->get('watchlist_notes'),
                 date_added      => $params->get('date_added'),
                 watched_notes   => $params->get('watched_notes'),
@@ -172,7 +196,7 @@ post '/entry/create' => sub {
 get '/entry/:id/update' => sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
-    var $_ => $entry->$_ foreach qw< title tmdb_id watchlist_notes watched_notes is_public >;
+    var $_ => $entry->$_ foreach qw< title tmdb_id watched watchlist_notes watched_notes is_public >;
     foreach my $field (qw< date_added date_watched >) {
         next unless $entry->$field;
         var $field => DateTime::Format::SQLite->format_date($entry->$field);
@@ -199,6 +223,7 @@ post '/entry/:id/update' => sub {
             title           => $params->{title},
             watchlist_notes => $params->{watchlist_notes},
             date_added      => $params->{date_added},
+            watched         => $params->{watched},
             watched_notes   => $params->{watched_notes},
             date_watched    => $params->{date_watched} || undef,
             is_public       => $params->{is_public},

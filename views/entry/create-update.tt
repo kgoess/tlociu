@@ -2,11 +2,19 @@
     <form method="post" action="<% post_to %>">
         <div class="field">
             <label for="title">Title</label>
-            <input type="text" name="title" id="title" value="<% vars.title | html %>" required>
+            <% IF vars.title %>
+                <input type="hidden" name="title" value="<% vars.title | html %>"><% vars.title | html %>
+            <% ELSE %>
+                <input type="text" name="title" id="title" value="<% vars.title | html %>" required>
+            <% END %>
         </div>
         <div class="field">
             <label for="tmdb_id">TMDB ID</label>
-            <input type="text" name="tmdb_id" id="tmdb_id" value="<% vars.tmdb_id | html %>" required>
+            <% IF vars.tmdb_id %>
+                <input type="hidden" name="tmdb_id" value="<% vars.tmdb_id | html %>"><% vars.tmdb_id | html %>
+            <% ELSE %>
+                <input type="text" name="tmdb_id" id="tmdb_id" value="<% vars.tmdb_id | html %>" required>
+            <% END %>
         </div>
         <div class="field">
             <label for="watchlist_notes">Watchlist Notes</label>
@@ -15,6 +23,13 @@
         <div class="field">
             <label for="date_added">Date Added</label>
             <input type="date" name="date_added" id="date_added" value="<% vars.date_added %>" required>
+        </div>
+        <div class="field">
+            Watched?
+            <label for="watched-yes" class="radiobutton">Yes</label>
+            <input type="radio" id="watched-yes" name="watched" value="1" <% IF vars.watched ; 'checked'; END %>>
+            <label for="watched-no" class="radiobutton">No</label>
+            <input type="radio" id="watched-no" name="watched" value="0" <% IF !vars.watched ; 'checked'; END %>>
         </div>
         <div class="field">
             <label for="watched_notes">Watched Notes</label>

@@ -15,6 +15,6 @@ sub new {
     return bless $self, $class;
 }
 
-sub movie { return kg::Tlociu::TMDB::Movie->new( session => shift->session, @_ ); }
+sub movie { return kg::Tlociu::TMDB::Movie->new(session => shift->session, @_) }
 
 1;

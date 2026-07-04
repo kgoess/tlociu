@@ -73,6 +73,12 @@ __PACKAGE__->table("entries");
   default_value: current_timestamp
   is_nullable: 1
 
+=head2 watched
+
+  data_type: 'boolean'
+  default_value: 0
+  is_nullable: 0
+
 =head2 watched_notes
 
   data_type: 'text'
@@ -122,6 +128,8 @@ __PACKAGE__->add_columns(
     default_value => \"current_timestamp",
     is_nullable   => 1,
   },
+  "watched",
+  { data_type => "boolean", default_value => 0, is_nullable => 0 },
   "watched_notes",
   { data_type => "text", is_nullable => 1 },
   "date_watched",
@@ -152,33 +160,19 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<user_id_title_lc_unique>
+=head2 C<user_id_tmdb_id_unique>
 
 =over 4
 
 =item * L</user_id>
 
-=item * L</title_lc>
+=item * L</tmdb_id>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("user_id_title_lc_unique", ["user_id", "title_lc"]);
-
-=head2 C<user_id_title_unique>
-
-=over 4
-
-=item * L</user_id>
-
-=item * L</title>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("user_id_title_unique", ["user_id", "title"]);
+__PACKAGE__->add_unique_constraint("user_id_tmdb_id_unique", ["user_id", "tmdb_id"]);
 
 =head1 RELATIONS
 
@@ -198,8 +192,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-04 18:17:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XFDBd3rgArsppfzM9/JBOA
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-04 22:15:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k/Y4WgI11VReWHVXFUzBcw
 
 
 # # Hook for new inserts

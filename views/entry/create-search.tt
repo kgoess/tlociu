@@ -47,6 +47,7 @@
     function updateResults(results) {
         const resultsEl = document.getElementById('create-search-results');
 
+        // stuff they've already added to their watchlist
         const foundWatchlistItems = [];
         if (results.watchlist_entries.length) {
             const divEl = document.createElement('div');
@@ -54,8 +55,8 @@
             divEl.textContent = 'Already On Your Watchlist:';
             foundWatchlistItems.push(divEl);
         }
-            
-        // this might be better as a moustache template or whatever js template
+
+        // all these might be better as a moustache template or whatever js template
         // they're using these days
         for (const res of results.watchlist_entries) {
             const divEl = document.createElement('div');
@@ -76,9 +77,55 @@
 
             foundWatchlistItems.push(divEl);
         }
-console.log(foundWatchlistItems);
 
-        resultsEl.replaceChildren(...foundWatchlistItems);
+        const tmdbResults = [];
+        const divEl = document.createElement('div');
+        divEl.classList.add('section-title');
+        divEl.textContent = 'Listings From TMDB:';
+        const ulEl = document.createElement('ul');
+        ulEl.classList.add('entry-list');
+        tmdbResults.push(divEl, ulEl);
+        for (const res of results.tmdb_results) {
+            const liEl = document.createElement('li');
+            liEl.classList.add('entry-card');
+            if (res.poster_path) {
+                const imgAEl = document.createElement('a');
+                imgAEl.classList.add('thumb-link');
+                imgAEl.setAttribute('href', '<% request.uri_for('/entry/create') %>' + '?tmdb_id=' + res.id);
+                const imgEl = document.createElement('img');
+                imgEl.classList.add('thumb');
+                imgEl.setAttribute('src', '<% img_base_url %>' + 'w92' + res.poster_path);
+                imgAEl.append(imgEl);
+                liEl.append(imgAEl);
+            }
+            const bodyDivEl = document.createElement('div');
+            bodyDivEl.classList.add('entry-card-body');
+
+            const cardHeaderDivEl = document.createElement('div');
+            cardHeaderDivEl.classList.add('entry-card-header-oneline');
+            h2El = document.createElement('h2');
+            h2El.classList.add('entry-title');
+            h2El.textContent = res.title;
+            const entryAEl = document.createElement('a');
+            const metaPEl = document.createElement('p');
+            metaPEl.classList.add('entry-meta');
+            metaPEl.classList.add('entry-meta-results-header-oneline');
+            metaPEl.textContent = res.original_language + ' ' + res.release_date.replace(/-..-..$/, '');
+            entryAEl.setAttribute('href', '<% request.uri_for('/entry/create') %>' + '?tmdb_id=' + res.id);
+            entryAEl.textContent = 'Add To Watchlist';
+
+            cardHeaderDivEl.append(h2El, metaPEl, entryAEl, );
+            const notesPEl = document.createElement('p');
+            notesPEl.classList.add('entry-notes');
+            notesPEl.textContent = res.overview;
+
+            bodyDivEl.append(cardHeaderDivEl, notesPEl);
+            liEl.append(bodyDivEl);
+            tmdbResults.push(liEl);
+        }
+
+        const hr = document.createElement('hr');
+        resultsEl.replaceChildren(...foundWatchlistItems, hr, ...tmdbResults);
     }
 </script>
 

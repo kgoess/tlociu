@@ -10,11 +10,16 @@
             <% END %>
             <div class="entry-card-body">
                 <h2 class="entry-title"><a href="/entry/<% entry.id %>"><% entry.title | html_entity %></a></h2>
-                <p class="entry-meta">Created <% entry.created_at | html_entity %></p>
+                <p class="entry-meta">Added <% entry.date_added.ymd | html_entity %></p>
                 <% IF entry.watchlist_notes %>
                 <p class="entry-notes"><% entry.watchlist_notes | html_entity %></p>
                 <% END %>
-                <% IF entry.watched_notes %>
+                <% IF entry.watched %>
+                <% IF entry.date_watched %>
+                <p class="entry-meta">Watched <% entry.date_watched.ymd %></p>
+                <% ELSE %>
+                <p class="entry-meta">Watched</p>
+                <% END %>
                 <p class="entry-notes"><% entry.watched_notes | html_entity %></p>
                 <% END %>
             </div>

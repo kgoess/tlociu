@@ -6,6 +6,7 @@ CREATE TABLE entries (
     title_lc TEXT NOT NULL,
     watchlist_notes TEXT,
     date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    watched BOOLEAN NOT NULL DEFAULT 0 CHECK (watched IN (0, 1)),
     watched_notes TEXT,
     date_watched TIMESTAMP,
     is_deleted INTEGER CHECK (is_deleted IN (0, 1)) NOT NULL DEFAULT 0,
@@ -13,7 +14,6 @@ CREATE TABLE entries (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     -- modified_at TIMESTAMP
     -- deleted_at TIMESTAMP
-    UNIQUE(user_id, title)
-    UNIQUE(user_id, title_lc)
+    UNIQUE(user_id, tmdb_id)
     FOREIGN KEY (user_id) REFERENCES users(id)
 );

@@ -14,7 +14,7 @@
         <a class="site-title" href="<% request.uri_for('/') %>">Tlociu</a>
         <nav>
             <a href="<% request.uri_for('/') %>">All Entries</a>
-            <a href="<% request.uri_for('/entry/create') %>">New Entry</a>
+            <a href="<% request.uri_for('/entry/create-search') %>">New Entry</a>
         </nav>
     </div>
 </header>
