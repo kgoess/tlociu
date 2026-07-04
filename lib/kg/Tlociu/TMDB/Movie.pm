@@ -5,6 +5,7 @@ use warnings;
 use parent qw/TMDB::Movie/;
 
 use JSON::MaybeXS qw/encode_json decode_json/;
+use List::Util qw/first/;
 
 sub new {
     my ($class) = shift;
@@ -92,6 +93,12 @@ sub trailers {
         $self->{_trailers} = $self->SUPER::trailers;
     }
     return $self->{_trailers};
+}
+
+sub youtube_trailer ($self) {
+    my $trailers = $self->trailers;
+    my $trailer = first { $_->{type} eq 'Trailer' } $trailers->{youtube}->@*;
+    return 'http://youtu.be/' . $trailer->{source};
 }
 
 sub images { ... }

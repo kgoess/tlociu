@@ -40,12 +40,50 @@ use DateTime;
 use Dancer2;
 use Dancer2::Plugin::DBIx::Class;
 
+use kg::Tlociu::TMDB;
+
 our $VERSION = '0.1';
 
+my $apikey = `cat ~/.tmdb`;
+chomp $apikey;
+my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => 1);
+
+# get / front page, list entries
+# (maybe should be /entry/ ?)
 get '/' => sub {
     my @entries = resultset('Entry')->search({ user_id => 1 })->all;
     template 'index', { entries => \@entries };
 };
+
+# get (basic entry display)
+get '/entry/:id' => sub {
+    my $id = route_parameters->get('id');
+    my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
+    my $movie = $TMDB->movie(id => $entry->tmdb_id);
+    $movie->init_from_db(resultset('Movie'));
+
+    template 'entry/index', {
+       entry => $entry,
+       movie => $movie,
+       # from config "secure_base_url": "https://image.tmdb.org/t/p/",
+       # "poster_sizes": [
+       #    "w92",
+       #    "w154",
+       #    "w185",
+       #    "w342",
+       #    "w500",
+       #    "w780",
+       #    "original"
+       # "backdrop_sizes": [
+       #    "w300",
+       #    "w780",
+       #    "w1280",
+       #    "original"
+       base_url => 'https://image.tmdb.org/t/p/',
+       trailer => $movie->youtube_trailer,
+   };
+};
+
 
 # create
 get '/entry/create' => sub {
@@ -83,13 +121,6 @@ post '/entry/create' => sub {
         }
     };
     redirect uri_for "/entry/" . $entry->id; # redirect does not need a return
-};
-
-# get
-get '/entry/:id' => sub {
-    my $id = route_parameters->get('id');
-    my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
-    template 'entry/index', { entry => $entry };
 };
 
 # update
