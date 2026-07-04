@@ -56,7 +56,9 @@ get '/' => sub {
 };
 
 # get (basic entry display)
-get '/entry/:id' => sub {
+# :id must be typed as Int or this route also swallows GET /entry/create,
+# since Dancer2 matches routes in declaration order
+get '/entry/:id[Int]' => sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
     my $movie = $TMDB->movie(id => $entry->tmdb_id);
