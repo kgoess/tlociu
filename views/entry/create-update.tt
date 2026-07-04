@@ -1,25 +1,40 @@
 <div id="create-update">
     <form method="post" action="<% post_to %>">
-        <label for="title">Title</label>
-        <input type="text" name="title" id="title" value="<% vars.title | html %>" required><br>
-        <label for="title">TMDB ID</label>
-        <input type="text" name="tmdb_id" id="tmdb_id" value="<% vars.tmdb_id | html %>" required><br>
-        <label for="watchlist_notes">Watchlist Notes</label>
-        <textarea name="watchlist_notes" id="watchlist_notes" cols="50" rows="10"><% vars.watchlist_notes | html %></textarea><br>
-        <label for="date_added">Date Added</label>
-        <input type="date" name="date_added" id="date_added" value="<% vars.date_added %>" required><br>
-        <label for="watched_notes">Watched Notes</label>
-        <textarea name="watched_notes" id="content" cols="50" rows="10"><% vars.watched_notes | html %></textarea><br>
-        <label for="date_watched">Date Watched</label>
-        <input type="date" name="date_watched" id="date_watched" value="<% vars.date_watched| html %>"><br>
-        Visibility:
-        <label for="is_public">Public</label>
-        <input type="radio" name="is_public" id="is_public" value="1" <% vars.is_public && "checked" %> > &nbsp; 
-        <label for="is_private">Private</label>
-        <input type="radio" name="is_public" id="is_private" value="0" <% vars.is_public || "checked" %>><br>
+        <div class="field">
+            <label for="title">Title</label>
+            <input type="text" name="title" id="title" value="<% vars.title | html %>" required>
+        </div>
+        <div class="field">
+            <label for="tmdb_id">TMDB ID</label>
+            <input type="text" name="tmdb_id" id="tmdb_id" value="<% vars.tmdb_id | html %>" required>
+        </div>
+        <div class="field">
+            <label for="watchlist_notes">Watchlist Notes</label>
+            <textarea name="watchlist_notes" id="watchlist_notes" cols="50" rows="10"><% vars.watchlist_notes | html %></textarea>
+        </div>
+        <div class="field">
+            <label for="date_added">Date Added</label>
+            <input type="date" name="date_added" id="date_added" value="<% vars.date_added %>" required>
+        </div>
+        <div class="field">
+            <label for="watched_notes">Watched Notes</label>
+            <textarea name="watched_notes" id="watched_notes" cols="50" rows="10"><% vars.watched_notes | html %></textarea>
+        </div>
+        <div class="field">
+            <label for="date_watched">Date Watched</label>
+            <input type="date" name="date_watched" id="date_watched" value="<% vars.date_watched| html %>">
+        </div>
+        <div class="field inline">
+            <div class="field-legend">Visibility</div>
+            <input type="radio" name="is_public" id="is_public" value="1" <% vars.is_public && "checked" %>>
+            <label for="is_public">Public</label>
+            &nbsp;
+            <input type="radio" name="is_public" id="is_private" value="0" <% vars.is_public || "checked" %>>
+            <label for="is_private">Private</label>
+        </div>
         <input type="submit">
     </form>
 <% IF vars.error_message %>
-    <div>ERROR: <% vars.error_message | html %></div>
+    <div class="error">ERROR: <% vars.error_message | html %></div>
 <% END %>
 </div>

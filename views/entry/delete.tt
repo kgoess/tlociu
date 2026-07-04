@@ -1,14 +1,13 @@
 <div id="delete">
     <form method="post" action="<% request.uri_for('/entry/' _ id _ '/delete') %>">
         <p>Delete entry for "<% title | html %>" #<% id %>. Are you sure?</p>
-        <p>
+        <div class="field inline">
             <input type="radio" id="yes" name="delete_it" value="yes">
             <label for="yes">Yes</label>
-        </p>
-        <p>
+            &nbsp;
             <input type="radio" id="no" name="delete_it" value="no">
             <label for="no">No</label>
-        </p>
+        </div>
         <input type="submit">
     </form>
 </div>

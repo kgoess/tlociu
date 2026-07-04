@@ -1,13 +1,19 @@
 <div id="entries">
 <% IF entries.size %>
-    <dl>
+    <ul class="entry-list">
     <% FOREACH entry IN entries %>
-        <dt><a href="/entry/<% entry.id %>"><% entry.title | html_entity %></a>
-            (created at <% entry.created_at | html_entity %>)</dt>
-        <dd><% entry.watchlist_notes | html_entity %></dd>
-        <dd><% entry.watched_notes | html_entity %></dd>
+        <li class="entry-card">
+            <h2 class="entry-title"><a href="/entry/<% entry.id %>"><% entry.title | html_entity %></a></h2>
+            <p class="entry-meta">Created <% entry.created_at | html_entity %></p>
+            <% IF entry.watchlist_notes %>
+            <p class="entry-notes"><% entry.watchlist_notes | html_entity %></p>
+            <% END %>
+            <% IF entry.watched_notes %>
+            <p class="entry-notes"><% entry.watched_notes | html_entity %></p>
+            <% END %>
+        </li>
     <% END %>
-    </dl>
+    </ul>
 <% ELSE %>
     <p>No entries found.</p>
 <% END %>

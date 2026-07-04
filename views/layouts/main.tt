@@ -8,16 +8,23 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 </head>
 <body>
-<div id="menu">
-    <a href="<% request.uri_for('/') %>">List All Entries</a>&nbsp;|&nbsp;
-    <a href="<% request.uri_for('/entry/create') %>">Create New Entry</a>
-</div>
+<header id="site-header">
+    <div class="container">
+        <a class="site-title" href="<% request.uri_for('/') %>">Tlociu</a>
+        <nav>
+            <a href="<% request.uri_for('/') %>">All Entries</a>
+            <a href="<% request.uri_for('/entry/create') %>">New Entry</a>
+        </nav>
+    </div>
+</header>
 
+<main class="container">
 <% content %>
+</main>
 
-<div id="footer">
+<footer id="footer">
     Powered by <a href="http://perldancer.org/">Dancer2</a> <% dancer_version %>
-</div>
+</footer>
 
 </body>
 </html>
