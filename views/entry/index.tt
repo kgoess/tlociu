@@ -44,7 +44,7 @@
             <p><% movie.writer.unique.join(', ') | html %></p>
 
             <h3>Starring</h3>
-            <p><% movie.actors.join(', ') | html %></p>
+            <p><% movie.actors.slice(0,10).join(', ') | html %></p>
 
             <p><a class="button" href="<% trailer %>">▶ Play Trailer</a></p>
 
