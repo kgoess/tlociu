@@ -38,7 +38,7 @@
             <h3>Watchlist notes <em>(<% entry.date_added.strftime("%a, %b %e, %Y") | html %>)</em></h3>
             <p><% entry.watchlist_notes | html_entity | html_line_break %></p>
 
-            <% IF entry.watched %>
+            <% IF entry.watched_notes || entry.date_watched %>
                 <% IF entry.watched_notes %>
                     <h3>Watched notes <% IF entry.date_watched %>(<% entry.date_watched.strftime("%a, %b %e, %Y") | html %>)</em><% END %></h3>
                     <p><% entry.watched_notes | html_entity | html_line_break %></p>

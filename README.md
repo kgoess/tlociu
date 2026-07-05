@@ -29,6 +29,10 @@ screenshots of it in action.
 
 # TODO features
 
+- DONE make installable, run under mod_perl?
+- add basic users
+- add "signin with" buttons for google at least, maybe apple
+- check error reporting on update screen, I think it's being squelched
 - add tags
 - add basic sorting to the watch list--by date, by director
 - add other fields: DP, Cinematographer,...?
@@ -53,7 +57,7 @@ I imprint on little things [like](https://youtu.be/1KjTZDLZYG4?si=rh6UcGvG7DtN6V
 
 ## Your Environment:
 
-    perlbrew use perl-5.40.3
+    # perlbrew use perl-5.40.3 for rocky-10, otherwise rocky-8 installed Perl is 5.26.3
     eval "$(perl -Mlocal::lib=/var/lib/tlociu)"
 
 ## Making changes to the db tables.

@@ -3,11 +3,31 @@
 # only log warning and error messsages
 log: "warning"
 
+# apache will send these to /var/log/httpd/*
+logger: "console"
+
 # log message to a file in logs/
-logger: "file"
+# logger: "file"
 
 # hide errors
 show_stacktrace: 0
 
 # disable server tokens in production environments
 no_server_tokens: 1
+
+plugins:
+  DBIx::Class:
+    default:
+      dsn: "dbi:SQLite:dbname=/var/lib/tlociu/db/tlociu.sqlite"
+      schema_class: "kg::Tlociu::Schema"
+      dbi_params:
+        RaiseError: 1
+        AutoCommit: 1
+        on_connect_do: PRAGMA foreign_keys = ON
+
+strict_config_allow:
+    - tmdb_apikey
+    - tmdb_debug
+
+tmdb_apikey: /var/www/tlociu/private/apikey
+tmdb_debug: 0

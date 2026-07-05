@@ -4,12 +4,12 @@
     <% FOREACH entry IN entries %>
         <li class="entry-card<% IF entry.watched %> watched<% END %>">
             <% IF posters.item(entry.id) %>
-            <a class="thumb-link" href="/entry/<% entry.id %>">
+            <a class="thumb-link" href="<% request.uri_for('/entry/' _ entry.id) %>">
                 <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
             </a>
             <% END %>
             <div class="entry-card-body">
-                <h2 class="entry-title"><a href="/entry/<% entry.id %>"><% entry.title | html_entity %></a></h2>
+                <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html_entity %></a></h2>
                 <p class="entry-meta">Added <% entry.date_added.ymd | html_entity %></p>
                 <% IF entry.watchlist_notes %>
                 <p class="entry-notes"><% entry.watchlist_notes | html_entity %></p>

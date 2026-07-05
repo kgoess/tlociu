@@ -17,7 +17,8 @@ me use the kg::Tlociu::TMDB::Movie wrapper, q.v., instead of TMDB::Movie.
 
 package kg::Tlociu::TMDB;
 
-use 5.40.3;
+#use 5.40.3;
+use 5.26.3;
 use warnings;
 
 use parent qw/TMDB/;

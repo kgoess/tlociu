@@ -38,8 +38,11 @@ to repeat them at all.
 
 package kg::Tlociu;
 
-use feature 'try';
-no warnings 'experimental::try';
+# perl-5.26.3 under rocky-8.10
+# perl-5.40.2 under rocky-10
+use Try::Tiny;
+# use feature 'try';
+# no warnings 'experimental::try';
 
 use DateTime;
 use Dancer2;
@@ -49,10 +52,8 @@ use kg::Tlociu::TMDB;
 
 our $VERSION = '0.1';
 
-my $apikey = `cat ~/.tmdb`;
-chomp $apikey;
-my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => 1);
-
+my $apikey = load_apikey();
+my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => config->{tmdb_debug});
 
 =head2 get /
 
@@ -139,7 +140,7 @@ get '/entry/:id[Int]' => sub {
     template 'entry/index', {
        entry => $entry,
        movie => $movie,
-       # from config "secure_base_url": "https://image.tmdb.org/t/p/",
+       # from /config "secure_base_url": "https://image.tmdb.org/t/p/",
        # "poster_sizes": [
        #    "w92",
        #    "w154",
@@ -182,7 +183,7 @@ and title already filled in as hidden inputs.
 
 get '/entry/create' => sub {
     my $params = query_parameters();
-    if ($params->{tmdb_id} && $params->{tmdb_id} =~ /^[0-9]{,20}$/) {
+    if ($params->{tmdb_id} && $params->{tmdb_id} =~ /^[0-9]{0,20}$/) {
         my $movie = $TMDB->movie(id => $params->{tmdb_id});
         $movie->init_from_db(resultset('Movie'));
         var tmdb_id => $movie->id;
@@ -230,11 +231,13 @@ post '/entry/create' => sub {
             );
             resultset('Entry')->create(\%create_params);
         }
-        catch( $e ) {
+        # 5.40 try/catch catch( $e ) {
+        catch {
+            my $e = $_;
             error "Database error: $e";
             var error_message => 'A database error occurred; your entry could not be created';
             forward '/entry/create', {}, { method => 'GET' };
-        }
+        };
     };
     redirect uri_for "/entry/" . $entry->id; # redirect does not need a return
 };
@@ -281,11 +284,13 @@ post '/entry/:id/update' => sub {
             is_public       => $params->{is_public},
         });
     }
-    catch( $e ) {
+    # 5.40 try/catch catch( $e ) {
+    catch {
+        my $e = $_;
         error "Database error: $e";
         var error_message => 'A database error occurred; your entry could not be updated',
         forward "/entry/$id/update", {}, { method => 'GET' };
-    }
+    };
     redirect uri_for "/entry/" . $entry->id; # redirect does not need a return
 };
 
@@ -315,6 +320,18 @@ post '/entry/:id/delete' => sub {
     $entry->delete;
     redirect uri_for "/";
 };
+
+sub load_apikey {
+    my $apikey_path = config->{tmdb_apikey}
+        or die "please configure tmpdb_apikey in ".app()->environment.".yml or config.yml";
+    $apikey_path =~ s/~/$ENV{HOME}/;
+    open my $apikey_fh, '<', $apikey_path
+        or die "can't read apikey file at $apikey_path: $!";
+    my $apikey = <$apikey_fh>;
+    close $apikey_fh;
+    chomp $apikey;
+    return $apikey;
+}
 
 
 true;

@@ -29,3 +29,10 @@ plugins:
         AutoCommit: 1
         on_connect_do: PRAGMA foreign_keys = ON
 
+strict_config_allow:
+    - tmdb_apikey
+    - tmdb_debug
+
+tmdb_apikey: ~/.tmdb
+tmdb_debug: 1
+

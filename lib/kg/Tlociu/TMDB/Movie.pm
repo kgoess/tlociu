@@ -26,8 +26,12 @@ don't have to go out to the API again.
 =cut
 
 package kg::Tlociu::TMDB::Movie;
-use 5.40.3;
+#use 5.40.3;
+use 5.26.3;
 use warnings;
+
+use feature 'signatures';
+no warnings 'experimental::signatures';
 
 use parent qw/TMDB::Movie/;
 
@@ -95,8 +99,8 @@ sub maybe_save_to_db ($self, $resultset) {
 
     $resultset->create({
         tmdb_id    => $self->id,
+        title      => $self->title,
         info       => encode_json($self->info),
-        title      => encode_json($self->title),
         movie_cast => encode_json($self->_cast),
         trailers   => encode_json($self->trailers),
         # unused
