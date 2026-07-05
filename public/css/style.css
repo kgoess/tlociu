@@ -137,6 +137,45 @@ h3 { font-size: 1rem; }
     color: var(--text);
 }
 
+/* Watch status */
+
+.watch-status {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: #175cd3;
+    background-color: #eff4fc;
+    border: 1px solid #d3e1f7;
+    border-radius: 999px;
+    padding: 2px 10px;
+}
+
+.entry-card.watched {
+    background-color: var(--bg-subtle);
+    border-color: #eceef1;
+}
+
+.entry-card.watched .entry-title a,
+.entry-card.watched .entry-notes {
+    color: var(--muted);
+}
+
+.entry-card.watched .entry-meta {
+    color: #98a2b3;
+}
+
+.entry-card.watched .thumb {
+    opacity: 0.75;
+}
+
+.entry-card.watched .watch-status {
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 2px 0;
+}
+
 /* Entry detail */
 
 .entry-detail {
