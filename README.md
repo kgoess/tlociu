@@ -18,10 +18,9 @@ That's it.
 
 It uses the TMDB library [from CPAN](https://metacpan.org/pod/TMDB).
 
-
 Track watchlist and films seen (The Language Of Cinema Is Universal)
 
-See notes in lib/kg/Tlociu.pm
+Database schema is in [this directory](https://github.com/kgoess/tlociu/tree/master/db)
 
 See the [screenshots
 directory](https://github.com/kgoess/tlociu/tree/master/screenshots) for
@@ -33,6 +32,7 @@ screenshots of it in action.
 - add basic users
 - add "signin with" buttons for google at least, maybe apple
 - check error reporting on update screen, I think it's being squelched
+- add unit tests, any tests
 - add tags
 - add basic sorting to the watch list--by date, by director
 - add other fields: DP, Cinematographer,...?
