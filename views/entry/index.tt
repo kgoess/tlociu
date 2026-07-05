@@ -49,7 +49,7 @@
                 <% END %>
             <% END %>
 
-            <p><a class="button" href="<% trailer %>">▶ Play Trailer</a></p>
+            <p><a class="button" href="<% trailer %>" target="_blank">▶ Play Trailer</a></p>
 
             <p class="expandable-text clamped" onclick="toggleExpandableText(this)"><% movie.overview %></p>
 
