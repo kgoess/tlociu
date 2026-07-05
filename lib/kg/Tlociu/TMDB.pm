@@ -1,3 +1,20 @@
+=head1 NAME
+
+kg::Tlociu::TMDB
+
+=head1 SYNOPSIS
+
+    my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => 0);
+    my $movie = $TMDB->movie(id => $tmdb_id);
+    say $movie->title;
+
+=head1 DESCRIPTION
+
+This is a wrapper subclass for the TMDB library from CPAN. All it does it let
+me use the kg::Tlociu::TMDB::Movie wrapper, q.v., instead of TMDB::Movie.
+
+=cut
+
 package kg::Tlociu::TMDB;
 
 use 5.40.3;

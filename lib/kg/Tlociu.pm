@@ -23,11 +23,16 @@ hear about a film that sounds interesting with when and where I heard of it.
 This is a Perl web app using Dancer2 and DBIx::Class with a SQLite data
 store.
 
-Connecting this with https://www.omdbapi.com/ or
+Connecting this to
 https://developer.themoviedb.org/reference/intro/getting-started will let me
 answer the question, "what do I want to watch tonight?"
-https://dev.to/zuplo/whats-the-best-movie-database-api-imdb-vs-tmdb-vs-omdb-b24
 
+This uses kg::Tlociu::TMDB as a rapper around the TMDB library from CPAN. That
+library doesn't cache HTTP requests and is unnecessarily profligate in making
+them. The wrapper also also me to store the lookups in SQLite so as not to have
+to repeat them at all.
+
+=head1 Routes
 
 =cut
 
@@ -48,8 +53,14 @@ my $apikey = `cat ~/.tmdb`;
 chomp $apikey;
 my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => 1);
 
-# get / front page, list entries
-# (maybe should be /entry/ ?)
+
+=head2 get /
+
+get / front page, list entries
+(maybe should be /entry/ ?)
+
+=cut
+
 get '/' => sub {
     my @entries = resultset('Entry')->search(
         { user_id => 1 },
@@ -69,7 +80,15 @@ get '/' => sub {
     };
 };
 
-# handles the AJAX search from /entry/create-search
+=head2 post /search-title
+
+Handles the AJAX search for title from the /entry/create-search page.
+
+The results are formatted and displayed on the page by javascript in
+views/entry/create-search.tt.
+
+=cut
+
 post '/search-title' => sub {
     my $title = body_parameters->get('title');
 
@@ -103,7 +122,12 @@ post '/search-title' => sub {
     };
 };
 
-# get (basic entry display)
+=head2 get /entry/12345
+
+Display a single entry
+
+=cut
+
 # :id must be typed as Int or this route also swallows GET /entry/create,
 # since Dancer2 matches routes in declaration order
 get '/entry/:id[Int]' => sub {
@@ -134,6 +158,13 @@ get '/entry/:id[Int]' => sub {
    };
 };
 
+=head2 get /entry/create-search
+
+The first step in creating a new watchlist entry. This is a textbox to search
+for movie title. Clicking through will lead you to /entry/create.
+
+=cut
+
 get '/entry/create-search' => sub {
     template 'entry/create-search', {
         search_url => uri_for('/search-title'),
@@ -141,7 +172,14 @@ get '/entry/create-search' => sub {
     };
 };
 
-# create
+
+=head2 get /entry/create
+
+The second step in creating a new watchlist entry. An empty form with tmdb_id
+and title already filled in as hidden inputs.
+
+=cut
+
 get '/entry/create' => sub {
     my $params = query_parameters();
     if ($params->{tmdb_id} && $params->{tmdb_id} =~ /^[0-9]{,20}$/) {
@@ -156,10 +194,19 @@ get '/entry/create' => sub {
        post_to => uri_for('/entry/create'),
     };
 };
+
+=head2 post /entry/create
+
+Accepts the form submission from the /entry/create page. Saves to the entries
+table, checks the movies table and if necessary makes a TMDB call and to add a
+row to movies.
+
+=cut
+
 post '/entry/create' => sub {
     my $params = body_parameters();
     var $_ => $params->{ $_ } foreach qw< title >;
-    my @missing = grep { $params->{$_} eq '' } qw< title >;
+    my @missing = grep { $params->{$_} eq '' } qw< tmdb_id title watchlist_notes >;
     if (@missing) {
         var missing => join ",", @missing;
         warning "Missing parameters: " . var 'missing';
@@ -192,7 +239,12 @@ post '/entry/create' => sub {
     redirect uri_for "/entry/" . $entry->id; # redirect does not need a return
 };
 
-# update
+=head2 get, post /entry/12345/update
+
+Show page to edit an existing entry and handle the results.
+
+=cut
+
 get '/entry/:id/update' => sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
@@ -237,7 +289,13 @@ post '/entry/:id/update' => sub {
     redirect uri_for "/entry/" . $entry->id; # redirect does not need a return
 };
 
-# delete
+
+=head2 get, post /entry/12345/delete
+
+Asks yes/no to delete the entry and handles the result.
+
+=cut
+
 get '/entry/:id/delete' => sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ user_id => 1, id => $id })->first
