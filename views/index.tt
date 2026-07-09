@@ -1,3 +1,9 @@
+<style>
+    .entry-card-body-header {
+        display: flex;
+        justify-content: space-between;
+    }
+</style>
 <div id="entries">
 <% IF entries.size %>
     <ul class="entry-list">
@@ -9,8 +15,17 @@
             </a>
             <% END %>
             <div class="entry-card-body">
-                <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html_entity %></a></h2>
-                <p class="entry-meta">Added <% entry.date_added.ymd | html_entity %></p>
+                <div class="entry-card-body-header">
+                    <div>
+                        <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html_entity %></a></h2>
+                        <p class="entry-meta">Added <% entry.date_added.ymd | html_entity %></p>
+                    </div>
+                    <% IF entry.watched %>
+                    <div class="watch-status">&#10003; Watched</div>
+                    <% ELSE %>
+                    <div class="watch-status">Want to watch</div>
+                    <% END %>
+                </div>
                 <% IF entry.watchlist_notes %>
                 <p class="entry-notes"><% entry.watchlist_notes | html_entity %></p>
                 <% END %>
@@ -23,11 +38,6 @@
                 <p class="entry-notes"><% entry.watched_notes | html_entity %></p>
                 <% END %>
             </div>
-            <% IF entry.watched %>
-            <span class="watch-status">&#10003; Watched</span>
-            <% ELSE %>
-            <span class="watch-status">Want to watch</span>
-            <% END %>
         </li>
     <% END %>
     </ul>
