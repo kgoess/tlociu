@@ -49,9 +49,12 @@
                 <% END %>
             <% END %>
 
-            <p><a class="button" href="<% trailer %>" target="_blank">▶ Play Trailer</a></p>
+            <p><% IF trailer %><a class="button" href="<% trailer %>" target="_blank">▶ Play Trailer</a><% ELSE %><span class="deemphasized-text">(No trailer available)</span><% END %></p>
 
             <p class="expandable-text clamped" onclick="toggleExpandableText(this)"><% movie.overview %></p>
+
+            <h3>Year · Country</h3>
+            <p><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name | html %></p>
 
             <h3>Directed by</h3>
             <p><% movie.director.join(', ') | html %></p>

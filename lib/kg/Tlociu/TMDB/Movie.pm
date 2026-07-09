@@ -35,8 +35,11 @@ no warnings 'experimental::signatures';
 
 use parent qw/TMDB::Movie/;
 
+use Encode qw/encode_utf8/;
 use JSON::MaybeXS qw/encode_json decode_json/;
 use List::Util qw/first/;
+use Locale::Language qw/code2language/;
+use Locale::Country qw/code2country/;
 
 sub new {
     my ($class) = shift;
@@ -172,13 +175,15 @@ https://youtu.be onto it.
 
 sub youtube_trailer ($self) {
     my $trailers = $self->trailers;
-    my $trailer = first { $_->{type} eq 'Trailer' } $trailers->{youtube}->@*;
+    my $trailer = first { $_->{type} eq 'Trailer' } $trailers->{youtube}->@*
+        or return '';
+    $trailer->{source} or return '';
     return 'http://youtu.be/' . $trailer->{source};
 }
 
 =head2 director
 
-Overrides the parent class directory().
+Overrides the parent class director().
 
 Clauded noticed that the parent class regex-matches any crew job containing "Director",
 which also picks up e.g. Director of Photography, Assistant Director
@@ -189,6 +194,22 @@ sub director ($self) {
     my @names = map { $_->{name} } grep { $_->{job} eq 'Director' } $self->crew;
     return @names if wantarray;
     return \@names;
+}
+
+=head2 original_language_name
+
+=cut
+
+sub original_language_name ($self) {
+    return code2language($self->info->{original_language}) // 'none';
+}
+
+=head2 origin_country_names
+
+=cut
+
+sub origin_country_names ($self) {
+    return [ map  { code2country($_) // 'none' } $self->info->{origin_country}->@* ];
 }
 
 =head2 unimplemented: images, keywords, releases, translations, changes, version, alternative_titles

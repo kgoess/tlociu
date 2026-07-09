@@ -372,6 +372,11 @@ input[type="submit"]:hover {
   transition: max-height 0.3s ease; /* Adds a smooth transition */
 }
 
+.deemphasized-text {
+    font-size: small;
+    color: grey;
+}
+
 /* Rules to limit text to exactly 3 lines */
 .clamped {
   display: -webkit-box;

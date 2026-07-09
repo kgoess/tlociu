@@ -22,8 +22,8 @@ startup_info: 1
 plugins:
   DBIx::Class:
     default:
-      #dsn: "dbi:SQLite:dbname=db/tlociu.sqlite;sqlite_unicode=1"
-      dsn: "dbi:SQLite:dbname=db/tlociu.sqlite"
+      #dsn: "dbi:SQLite:dbname=db/unittest.sqlite;sqlite_unicode=1"
+      dsn: "dbi:SQLite:dbname=db/unittest.sqlite"
       schema_class: "kg::Tlociu::Schema"
 # do these do anything? apparently not
 #      dbi_params:

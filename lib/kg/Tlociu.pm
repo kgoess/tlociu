@@ -47,6 +47,7 @@ use Try::Tiny;
 use DateTime;
 use Dancer2;
 use Dancer2::Plugin::DBIx::Class;
+use Locale::Language qw/code2language/;
 
 use kg::Tlociu::TMDB;
 
@@ -116,6 +117,9 @@ post '/search-title' => sub {
     # now ask TMDB directly
     my @tmdb_results = $TMDB->search->movie($title);
     @tmdb_results = grep { ! $on_watchlist{$_->{id}} } @tmdb_results;
+    $_->{original_language_name} = code2language($_->{original_language}) // 'none'
+        for @tmdb_results;
+    # origin_country isn't in these search results, bummer
 
     send_as JSON => {
         watchlist_entries => \@watchlist_entries,
@@ -134,6 +138,7 @@ Display a single entry
 get '/entry/:id[Int]' => sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
+
     my $movie = $TMDB->movie(id => $entry->tmdb_id);
     $movie->init_from_db(resultset('Movie'));
 

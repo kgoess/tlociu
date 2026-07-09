@@ -195,12 +195,13 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-04 22:15:22
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k/Y4WgI11VReWHVXFUzBcw
 
+use Encode qw/is_utf8 encode_utf8 decode_utf8/;
+
 
 # # Hook for new inserts
 sub insert {
     my $self = shift;
 
-    say STDERR "*** here in before_create ***";
     # Check if a username is set, then set the lowercase version
     if (defined $self->title) {
         $self->title_lc( lc($self->title) );
@@ -218,6 +219,13 @@ sub update {
     }
 
     return $self->next::method(@_);
+}
+
+foreach my $colname (qw/title title_lc watchlist_notes watched_notes/) {
+    __PACKAGE__->inflate_column($colname, {
+        inflate => sub { my $s = shift; is_utf8($s) ? $s : decode_utf8($s) },
+        deflate => sub { my $s = shift; is_utf8($s) ? encode_utf8($s) : $s },
+    });
 }
 
 1;

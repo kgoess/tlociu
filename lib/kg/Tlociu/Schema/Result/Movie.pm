@@ -180,6 +180,13 @@ __PACKAGE__->set_primary_key("id");
 # Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-03 21:14:55
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0xfHYf/0yMkEOHe6MCaX2g
 
+use Encode qw/is_utf8 encode_utf8 decode_utf8/;
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+foreach my $colname (qw/title/) {
+    __PACKAGE__->inflate_column($colname, {
+        inflate => sub { my $s = shift; is_utf8($s) ? $s : decode_utf8($s) },
+        deflate => sub { my $s = shift; is_utf8($s) ? encode_utf8($s) : $s },
+    });
+}
+
 1;

@@ -110,7 +110,7 @@
             const metaPEl = document.createElement('p');
             metaPEl.classList.add('entry-meta');
             metaPEl.classList.add('entry-meta-results-header-oneline');
-            metaPEl.textContent = res.original_language + ' ' + res.release_date.replace(/-..-..$/, '');
+            metaPEl.textContent = res.original_language_name + ' ' + res.release_date.replace(/-..-..$/, '');
             entryAEl.setAttribute('href', '<% request.uri_for('/entry/create') %>' + '?tmdb_id=' + res.id);
             entryAEl.textContent = 'Add To Watchlist';
 
