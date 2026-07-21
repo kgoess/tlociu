@@ -137,6 +137,13 @@ h3 { font-size: 1rem; }
     color: var(--text);
 }
 
+/* user-text because now with them being markdown it seems like a good idea to
+ * offset this from the tmdb text and info? though maybe it would be better to
+ * keep this white and make that a different color? */
+.user-text {
+    background-color: floralWhite;
+}
+
 /* Watch status */
 
 .watch-status {

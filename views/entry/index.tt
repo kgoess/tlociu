@@ -37,12 +37,12 @@
         <img class="poster" src="<% base_url _ 'w500' _ movie.poster | html %>" alt="<% entry.title | html %> poster">
         <div class="detail-text">
             <h3>Watchlist notes <em>(<% entry.date_added.strftime("%a, %b %e, %Y") | html %>)</em></h3>
-            <p><% entry.watchlist_notes | html | html_line_break | $YoutubeEmbed  %></p>
+            <p class="user-text markdown expandable-text"><% entry.watchlist_notes | html | $YoutubeEmbed  %></p>
 
             <% IF entry.watched_notes || entry.date_watched %>
                 <% IF entry.watched_notes %>
                     <h3>Watched notes <% IF entry.date_watched %>(<% entry.date_watched.strftime("%a, %b %e, %Y") | html %>)</em><% END %></h3>
-                    <p><% entry.watched_notes | html | html_line_break %></p>
+                    <p class="user-text markdown expandable-text"><% entry.watched_notes | html | $YoutubeEmbed %></p>
                 <% ELSIF entry.date_watched %>
                     <p class="detail-meta">Watched on <% entry.date_watched.strftime("%a, %b %e, %Y") %></p>
                 <% ELSE %>
@@ -52,7 +52,7 @@
 
             <p><% IF trailer %><a class="button" href="<% trailer %>" target="_blank">▶ Play Trailer</a><% ELSE %><span class="deemphasized-text">(No trailer available)</span><% END %></p>
 
-            <p class="expandable-text clamped" onclick="toggleExpandableText(this)"><% movie.overview %></p>
+            <p class="expandable-text clamped"><% movie.overview %></p>
 
             <h3>Year · Country</h3>
             <p><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name | html %></p>
