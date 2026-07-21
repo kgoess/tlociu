@@ -36,7 +36,7 @@ use Plack::Builder;
 
 builder {
     mount '/'      => kg::Tlociu->to_app;
-    mount '/admin'      => kg::Tlociu_admin->to_app;
+    mount '/admin' => kg::Tlociu_admin->to_app;
 }
 
 =end comment

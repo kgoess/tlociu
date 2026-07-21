@@ -17,8 +17,8 @@
             <div class="entry-card-body">
                 <div class="entry-card-body-header">
                     <div>
-                        <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html_entity %></a></h2>
-                        <p class="entry-meta">Added <% entry.date_added.ymd | html_entity %></p>
+                        <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html %></a></h2>
+                        <p class="entry-meta">Added <% entry.date_added.ymd | html %></p>
                     </div>
                     <% IF entry.watched %>
                     <div class="watch-status">&#10003; Watched</div>
@@ -27,7 +27,7 @@
                     <% END %>
                 </div>
                 <% IF entry.watchlist_notes %>
-                <p class="entry-notes expandable-text clamped" onclick="toggleExpandableText(this)"><% entry.watchlist_notes | html_entity %></p>
+                <p class="entry-notes expandable-text clamped" onclick="toggleExpandableText(this)"><% entry.watchlist_notes | html %></p>
                 <% END %>
                 <% IF entry.watched %>
                 <% IF entry.date_watched %>
@@ -35,7 +35,7 @@
                 <% ELSE %>
                 <p class="entry-meta">Watched</p>
                 <% END %>
-                <p class="entry-notes"><% entry.watched_notes | html_entity %></p>
+                <p class="entry-notes"><% entry.watched_notes | html %></p>
                 <% END %>
             </div>
         </li>

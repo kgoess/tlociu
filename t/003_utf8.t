@@ -8,7 +8,7 @@ use HTML::Entities qw/decode_entities/;
 use HTTP::Request::Common;
 use JSON::MaybeXS qw/decode_json/;
 use Plack::Test;
-use Test::More tests => 7;
+use Test::More tests => 6;
 
 use kg::Tlociu;
 
@@ -35,8 +35,8 @@ $content =~ m{(<h2 class="entry-title"><a href="http://localhost/entry/1">(.+?)<
 my $h2 = $1;
 my $title = $2;
 
-is $title, q{L&#39;&Acirc;ge b&ecirc;te}, q{HTML title L&#39;&Acirc;ge b&ecirc;te}; 
-is decode_entities($title), decode_utf8(q{L'Âge bête}), q{HTML title L'Âge bête}; 
+# note that there's no "use utf8" in this file so these are all octets not logical characters
+is $title, q{L&#39;Âge bête}, q{HTML title L'Âge bête};
 
 
 my %dbi_params;

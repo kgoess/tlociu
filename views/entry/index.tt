@@ -1,7 +1,7 @@
 <% IF entry %>
 <!-- <div id="sidebar">
     <h1>Posted at</h1>
-    <p><% entry.created_at | html_entity %></p>
+    <p><% entry.created_at | html %></p>
 </div>
 -->
 
@@ -26,7 +26,7 @@
             <a href="<% request.uri_for('/entry/'_ entry.id _ '/update') %>">Edit</a>
             <a class="danger" href="<% request.uri_for('/entry/'_ entry.id _ '/delete') %>">Delete</a>
         </div>
-        <h1><% entry.title | html_entity %></h1>
+        <h1><% entry.title | html %></h1>
         <% IF movie.tagline %>
         <p class="tagline"><% movie.tagline %></p>
         <% END %>
@@ -36,12 +36,12 @@
         <img class="poster" src="<% base_url _ 'w500' _ movie.poster | html %>" alt="<% entry.title | html %> poster">
         <div class="detail-text">
             <h3>Watchlist notes <em>(<% entry.date_added.strftime("%a, %b %e, %Y") | html %>)</em></h3>
-            <p><% entry.watchlist_notes | html_entity | html_line_break %></p>
+            <p><% entry.watchlist_notes | html | html_line_break %></p>
 
             <% IF entry.watched_notes || entry.date_watched %>
                 <% IF entry.watched_notes %>
                     <h3>Watched notes <% IF entry.date_watched %>(<% entry.date_watched.strftime("%a, %b %e, %Y") | html %>)</em><% END %></h3>
-                    <p><% entry.watched_notes | html_entity | html_line_break %></p>
+                    <p><% entry.watched_notes | html | html_line_break %></p>
                 <% ELSIF entry.date_watched %>
                     <p class="detail-meta">Watched on <% entry.date_watched.strftime("%a, %b %e, %Y") %></p>
                 <% ELSE %>
@@ -65,7 +65,7 @@
             <h3>Starring</h3>
             <p><% movie.actors.slice(0,10).join(', ') | html %></p>
 
-            <p class="detail-meta">Entry created: <% entry.created_at.ymd | html_entity %></p>
+            <p class="detail-meta">Entry created: <% entry.created_at.ymd | html %></p>
         </div>
     </div>
 
