@@ -27,7 +27,7 @@
                     <% END %>
                 </div>
                 <% IF entry.watchlist_notes %>
-                <p class="entry-notes"><% entry.watchlist_notes | html_entity %></p>
+                <p class="entry-notes expandable-text clamped" onclick="toggleExpandableText(this)"><% entry.watchlist_notes | html_entity %></p>
                 <% END %>
                 <% IF entry.watched %>
                 <% IF entry.date_watched %>

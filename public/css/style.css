@@ -380,7 +380,7 @@ input[type="submit"]:hover {
 /* Rules to limit text to exactly 3 lines */
 .clamped {
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Change this number to show more/fewer lines */
+  -webkit-line-clamp: 3; /* Change this number to show more/fewer lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
