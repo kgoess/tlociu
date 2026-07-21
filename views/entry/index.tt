@@ -54,8 +54,8 @@
 
             <p class="expandable-text clamped"><% movie.overview %></p>
 
-            <h3>Year · Country</h3>
-            <p><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name | html %></p>
+            <h3>Year · Country · Language · Runtime</h3>
+            <p><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name _ ' · ' _  movie.info.runtime _ ' minutes'| html %></p>
 
             <h3>Directed by</h3>
             <p><% movie.director.join(', ') | html %></p>

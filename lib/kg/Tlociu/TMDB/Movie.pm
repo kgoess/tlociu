@@ -133,7 +133,7 @@ sub info ($self) {
     return $self->{_info};
 }
 
-=head2 info
+=head2 _cast
 
 Overrides the superclass _cast() and stores the result in $self->{_cast}.
 
