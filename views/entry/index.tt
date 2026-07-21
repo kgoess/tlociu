@@ -1,3 +1,4 @@
+<% use YoutubeEmbed %>
 <% IF entry %>
 <!-- <div id="sidebar">
     <h1>Posted at</h1>
@@ -36,7 +37,7 @@
         <img class="poster" src="<% base_url _ 'w500' _ movie.poster | html %>" alt="<% entry.title | html %> poster">
         <div class="detail-text">
             <h3>Watchlist notes <em>(<% entry.date_added.strftime("%a, %b %e, %Y") | html %>)</em></h3>
-            <p><% entry.watchlist_notes | html | html_line_break %></p>
+            <p><% entry.watchlist_notes | html | html_line_break | $YoutubeEmbed  %></p>
 
             <% IF entry.watched_notes || entry.date_watched %>
                 <% IF entry.watched_notes %>

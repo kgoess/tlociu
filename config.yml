@@ -47,6 +47,7 @@ engines:
       # Note: start_tag and end_tag are regexes
       start_tag: '<%'
       end_tag:   '%>'
+      PLUGIN_BASE: 'kg::Tlociu::Template::Plugin'
 
 # session engine
 #
