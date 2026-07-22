@@ -273,7 +273,17 @@ get '/entry/:id/update' => sub {
         next unless $entry->$field;
         var $field => DateTime::Format::SQLite->format_date($entry->$field);
     }
-    template 'entry/create-update', { post_to => uri_for "/entry/$id/update" };
+    if (my $set_watched = query_parameters->get('set_watched')) {
+        var changing_watched => $set_watched;
+        if ($set_watched eq 'yes') {
+            var watched => 'checked';
+        } else {
+            var watched => undef;
+        }
+    }
+    template 'entry/create-update', {
+       post_to => uri_for "/entry/$id/update",
+    };
 };
 post '/entry/:id/update' => sub {
     my $id = route_parameters->get('id');

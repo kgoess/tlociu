@@ -27,16 +27,19 @@
             <label for="date_added">Date Added</label>
             <input type="date" name="date_added" id="date_added" value="<% vars.date_added %>" required>
         </div>
-        <div class="field">
+        <div class="field <% vars.changing_watched ? 'highlight-input' : '' %>">
             Watched?
             <label for="watched-yes" class="radiobutton">Yes</label>
             <input type="radio" id="watched-yes" name="watched" value="1" <% IF vars.watched ; 'checked'; END %>>
             <label for="watched-no" class="radiobutton">No</label>
             <input type="radio" id="watched-no" name="watched" value="0" <% IF !vars.watched ; 'checked'; END %>>
+            <% IF vars.changing_watched %>
+                    (Updating watched status for <i><% vars.title %></i>.)
+            <% END %>
         </div>
         <div class="field">
             <label for="watched_notes">Watched Notes</label>
-            <textarea name="watched_notes" id="watched_notes" cols="50" rows="10"><% vars.watched_notes | html %></textarea>
+            <textarea name="watched_notes" id="watched_notes" cols="50" rows="10" <% vars.changing_watched ? 'autofocus' : '' %>><% vars.watched_notes | html %></textarea>
         </div>
         <div class="field">
             <label for="date_watched">Date Watched</label>

@@ -31,7 +31,8 @@ screenshots of it in action.
 - add CSRF tokens for forms
 - add basic users
 - add "signin with" buttons for google at least, maybe apple
-- make watch/watched button clickable to update the entry
+- see the FIXMEs in style.css change those random colors to use var()s
+- add gzip middleware
 - add unit tests, any tests
 - add tags
 - add other fields: DP, Cinematographer,...?
@@ -42,6 +43,7 @@ screenshots of it in action.
 - DONE check error reporting on update screen, I think it's being squelched
 - DONE add basic sorting to the watch list--by date, by director
 - DONE conditional formatting for already watched films on the list
+- DONE make watch/watched button clickable to update the entry
 
 let mark as watched w/o going into edit screen
 sort options: watched/unwatched, by date, alpha, director

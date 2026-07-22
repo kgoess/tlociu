@@ -6,6 +6,9 @@
     --bg: #ffffff;
     --bg-subtle: #f7f8fa;
     --danger: #b42318;
+
+    /* my efforts are below */
+    --highlight-input: #f6ffc7;
 }
 
 * {
@@ -118,7 +121,7 @@ h3 { font-size: 1rem; }
     white-space: nowrap;
 }
 #list-controls-summary.has-selection {
-    color: #175cd3;
+    color: #175cd3; /* FIXME change to a var() */
 }
 
 #list-controls-panel {
@@ -168,7 +171,7 @@ h3 { font-size: 1rem; }
 
 .sort-button.active,
 .filter-button.active {
-    background-color: #eff4fc;
+    background-color: #eff4fc; /* FIXME change to a var() and ff. */
     border-color: #d3e1f7;
     color: #175cd3;
 }
@@ -184,7 +187,7 @@ h3 { font-size: 1rem; }
     line-height: 1;
     padding: 2px 5px;
     border-radius: 999px;
-    background-color: #d3e1f7;
+    background-color: #d3e1f7; /* FIXME change to a var() */
     color: #175cd3;
 }
 
@@ -276,9 +279,9 @@ h3 { font-size: 1rem; }
 
 /* user-text because now with them being markdown it seems like a good idea to
  * offset this from the tmdb text and info? though maybe it would be better to
- * keep this white and make that a different color? */
+ * keep this white and make the tmdb text a different color? */
 .user-text {
-    background-color: floralWhite;
+    background-color: floralWhite; /* FIXME change to a var() */
 }
 
 /* Watch status */
@@ -479,6 +482,10 @@ input[type="submit"] {
 }
 input[type="submit"]:hover {
     background-color: #1a459c;
+}
+
+.highlight-input {
+    background-color: var(--highlight-input);
 }
 
 .field-legend {

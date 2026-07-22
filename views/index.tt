@@ -46,9 +46,9 @@
                 </a>
                 <% END %>
                 <% IF entry.watched %>
-                <div class="watch-status">&#10003; Watched</div>
+                <div class="watch-status"><a href="<% request.uri_for('/entry/' _ entry.id _ '/update', { set_watched => 'no' }) %>">&#10003; Watched</a></div>
                 <% ELSE %>
-                <div class="watch-status" title="Want to watch">👀</div>
+                <div class="watch-status" title="Want to watch"><a href="<% request.uri_for('/entry/' _ entry.id _ '/update', { set_watched => 'yes' }) %>">👀</a></div>
                 <% END %>
                 </div>
             <div class="entry-card-body">
