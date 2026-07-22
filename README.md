@@ -28,18 +28,20 @@ screenshots of it in action.
 
 # TODO features
 
-- DONE make installable, run under mod_perl?
+- add CSRF tokens for forms
 - add basic users
 - add "signin with" buttons for google at least, maybe apple
-- check error reporting on update screen, I think it's being squelched
+- make watch/watched button clickable to update the entry
 - add unit tests, any tests
 - add tags
-- add basic sorting to the watch list--by date, by director
 - add other fields: DP, Cinematographer,...?
 - add sorting--Actor, Director, Writer, DP, Cinematographer...
 - click on an actor's name to see other films on your lists by that actor
-- conditional formatting for already watched films on the list
 - scale the main list to work at hundreds or thousands of entries, maybe pagination?
+- DONE make installable, run under mod_perl?
+- DONE check error reporting on update screen, I think it's being squelched
+- DONE add basic sorting to the watch list--by date, by director
+- DONE conditional formatting for already watched films on the list
 
 let mark as watched w/o going into edit screen
 sort options: watched/unwatched, by date, alpha, director
