@@ -1,4 +1,7 @@
 <div id="create-update">
+<% IF vars.error_message %>
+    <div class="error">ERROR: <% vars.error_message | html %></div>
+<% END %>
     <form method="post" action="<% post_to %>">
         <div class="field">
             <label for="title">Title</label>
@@ -18,7 +21,7 @@
         </div>
         <div class="field">
             <label for="watchlist_notes">Watchlist Notes</label>
-            <textarea name="watchlist_notes" id="watchlist_notes" cols="50" rows="10"><% vars.watchlist_notes | html %></textarea>
+            <textarea name="watchlist_notes" id="watchlist_notes" cols="50" rows="10" required><% vars.watchlist_notes | html %></textarea>
         </div>
         <div class="field">
             <label for="date_added">Date Added</label>
@@ -49,7 +52,4 @@
         </div>
         <input type="submit">
     </form>
-<% IF vars.error_message %>
-    <div class="error">ERROR: <% vars.error_message | html %></div>
-<% END %>
 </div>

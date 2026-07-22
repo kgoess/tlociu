@@ -216,9 +216,19 @@ post '/entry/create' => sub {
     var $_ => $params->{ $_ } foreach qw< title >;
     my @missing = grep { $params->{$_} eq '' } qw< tmdb_id title watchlist_notes >;
     if (@missing) {
-        var missing => join ",", @missing;
-        warning "Missing parameters: " . var 'missing';
-        forward '/entry/create', {}, { method => 'GET' };
+        my $err = "Missing parameters: ".join ", ", @missing;
+        var error_message => $err;
+        warning $err;
+        forward '/entry/create', $params, { method => 'GET' };
+    }
+
+    my @existing = resultset('Entry')->search({
+        user_id => 1,
+        tmdb_id => $params->{tmdb_id},
+    });
+    if (@existing) {
+        var error_message => "You already have an entry in your list for that movie.";
+        forward '/entry/create', $params, { method => 'GET' };
     }
 
     my $movie = $TMDB->movie(id => $params->{tmdb_id});
@@ -242,8 +252,8 @@ post '/entry/create' => sub {
         catch {
             my $e = $_;
             error "Database error: $e";
-            var error_message => 'A database error occurred; your entry could not be created';
-            forward '/entry/create', {}, { method => 'GET' };
+            var error_message => 'A database error occurred; your entry could not be created.';
+            forward '/entry/create', $params, { method => 'GET' };
         };
     };
     redirect uri_for "/entry/" . $entry->id; # redirect does not need a return
