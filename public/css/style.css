@@ -234,6 +234,11 @@ h3 { font-size: 1rem; }
     border: 1px solid var(--border);
 }
 
+.entry-card-thumb-column {
+    display: flex;
+    flex-direction: column;
+}
+
 .entry-card-body {
     flex: 1;
     min-width: 0;

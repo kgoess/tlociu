@@ -39,24 +39,26 @@
              data-date-added="<% entry.date_added.ymd %>"
              data-watched="<% entry.watched %>"
             >
-            <% IF posters.item(entry.id) %>
-            <a class="thumb-link" href="<% request.uri_for('/entry/' _ entry.id) %>">
-                <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
-            </a>
-            <% END %>
+            <div class="entry-card-thumb-column">
+                <% IF posters.item(entry.id) %>
+                <a class="thumb-link" href="<% request.uri_for('/entry/' _ entry.id) %>">
+                    <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
+                </a>
+                <% END %>
+                <% IF entry.watched %>
+                <div class="watch-status">&#10003; Watched</div>
+                <% ELSE %>
+                <div class="watch-status" title="Want to watch">👀</div>
+                <% END %>
+                </div>
             <div class="entry-card-body">
                 <div class="entry-card-body-header">
                     <div>
                         <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html %></a></h2>
-                        <p class="entry-meta"><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name _ ' · ' _  movie.info.runtime _ ' minutes'| html %></p>
+                        <p class="entry-meta"><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name _ ' · ' _  movie.info.runtime | html %>&nbsp;minutes</p>
                         <p class="entry-meta"><% movie.director %>, director</p>
                         <p class="entry-meta">Added <% entry.date_added.ymd | html %></p>
                     </div>
-                    <% IF entry.watched %>
-                    <div class="watch-status">&#10003; Watched</div>
-                    <% ELSE %>
-                    <div class="watch-status">Want to watch</div>
-                    <% END %>
                 </div>
                 <% IF entry.watchlist_notes %>
                 <p class="entry-notes expandable-text clamped markdown"><% entry.watchlist_notes | html %></p>

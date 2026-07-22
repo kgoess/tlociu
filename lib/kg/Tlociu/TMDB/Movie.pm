@@ -247,7 +247,13 @@ sub original_language_name ($self) {
 =cut
 
 sub origin_country_names ($self) {
-    return [ map  { code2country($_) // 'none' } $self->info->{origin_country}->@* ];
+    state $shorter = {
+        # because "United Kingdom of Great Britain and Northern Ireland" and "United
+        # States of America" are just too damn long
+        'US' => 'USA',
+        'GB' => 'Great Britain',
+    };
+    return [ map  { $shorter->{$_} // code2country($_) // 'none' } $self->info->{origin_country}->@* ];
 }
 
 =head2 unimplemented: images, keywords, releases, translations, changes, version, alternative_titles
