@@ -4,11 +4,29 @@
         justify-content: space-between;
     }
 </style>
+<button class="sort-button" data-column-name="title" data-sort-as="string">sort by title</button>
+<button class="sort-button" data-column-name="year" data-sort-as="number">sort by year</button>
+<button class="sort-button" data-column-name="country" data-sort-as="string">sort by country</button>
+<button class="sort-button" data-column-name="language" data-sort-as="string">sort by language</button>
+<button class="sort-button" data-column-name="runtime" data-sort-as="number">sort by runtime</button>
+<button class="sort-button" data-column-name="director" data-sort-as="string">sort by director</button>
+<button class="sort-button" data-column-name="dateAdded" data-sort-as="string">sort by date added</button>
+<button class="sort-button" data-column-name="watched" data-sort-as="string">sort by watched (actually this should be show or don't show where watched=1</button>
 <div id="entries">
 <% IF entries.size %>
-    <ul class="entry-list">
+    <ul id="entry-list">
     <% FOREACH entry IN entries %>
-        <li class="entry-card<% IF entry.watched %> watched<% END %>">
+        <% movie = movies.item(entry.id) %>
+        <li class="entry-card<% IF entry.watched %> watched<% END %>"
+             data-title="<% movie.title_sortable %>"
+             data-year="<% movie.year %>"
+             data-country="<% movie.origin_country_names.first() %>"
+             data-language="<% movie.original_language_name %>"
+             data-runtime="<% movie.info.runtime %>"
+             data-director="<% movie.director_sortable %>"
+             data-date-added="<% entry.date_added.ymd %>"
+             data-watched="<% entry.watched %>"
+            >
             <% IF posters.item(entry.id) %>
             <a class="thumb-link" href="<% request.uri_for('/entry/' _ entry.id) %>">
                 <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
@@ -18,6 +36,8 @@
                 <div class="entry-card-body-header">
                     <div>
                         <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html %></a></h2>
+                        <p class="entry-meta"><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name _ ' · ' _  movie.info.runtime _ ' minutes'| html %></p>
+                        <p class="entry-meta"><% movie.director %>, director</p>
                         <p class="entry-meta">Added <% entry.date_added.ymd | html %></p>
                     </div>
                     <% IF entry.watched %>

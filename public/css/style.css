@@ -83,7 +83,7 @@ h3 { font-size: 1rem; }
 
 /* Entry list */
 
-.entry-list {
+#entry-list {
     list-style: none;
     margin: 2rem 0;
     padding: 0;

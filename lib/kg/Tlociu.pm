@@ -68,17 +68,19 @@ get '/' => sub {
         { user_id => 1 },
         { order_by => [ qw/watched title/ ] },
     )->all;
-    my %posters;
+    my (%posters, %movies);
     foreach my $entry (@entries) {
         # TODO might be faster/easier to store the poster in the entries table
         my $movie = $TMDB->movie(id => $entry->tmdb_id);
         $movie->init_from_db(resultset('Movie'));
         $posters{$entry->id} = $movie->poster;
+        $movies{$entry->id} = $movie;
     }
     template 'index', {
-        entries  => \@entries,
-        posters  => \%posters,
-        base_url => 'https://image.tmdb.org/t/p/',
+        entries    => \@entries,
+        movies     => \%movies,
+        posters    => \%posters,
+        base_url   => 'https://image.tmdb.org/t/p/',
     };
 };
 

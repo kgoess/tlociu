@@ -33,13 +33,15 @@ use warnings;
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
-use parent qw/TMDB::Movie/;
-
 use Encode qw/encode_utf8/;
 use JSON::MaybeXS qw/encode_json decode_json/;
 use List::Util qw/first/;
 use Locale::Language qw/code2language/;
 use Locale::Country qw/code2country/;
+use Unicode::Normalize qw/NFKD/;
+
+use parent qw/TMDB::Movie/;
+
 
 sub new {
     my ($class) = shift;
@@ -194,6 +196,42 @@ sub director ($self) {
     my @names = map { $_->{name} } grep { $_->{job} eq 'Director' } $self->crew;
     return @names if wantarray;
     return \@names;
+}
+
+=head2 director_sortable
+
+Just the last name of the first director, lowercased.
+
+=cut
+
+sub director_sortable ($self) {
+    my @names = map { $_->{name} } grep { $_->{job} eq 'Director' } $self->crew;
+    my $name = lc $names[0]; # just pick the first one, and lowercase it
+    $name =~ s/.+ //; # just the last name
+    return $name;
+}
+
+=head2 title_sortable
+
+Remove A, An, The and lowercase
+
+=cut
+
+sub title_sortable ($self) {
+    my $title = $self->title;
+
+    # Remove articles, e.g.:
+    # A Night at the Opera, An Affair to Remember, Les Miserables, L'Âge bête, L'Atalante, Das Boot, El Cid
+    $title =~ s/^(?:A |An |The |Le |La |Les |L'|El |Der |Die |Das )//gi;
+
+    # Let's see if javascript sort can handle them, because this approach doesn't change "złoty srodek"
+    # Decompose characters (e.g., 'é' becomes 'e' + combining accent)
+    # my $normalized = NFKD($title);
+    # Strip all Unicode non-spacing mark (accent) characters
+    #$normalized =~ s/\p{NonspacingMark}//g;
+    #return lc $normalized;
+
+    return lc $title;
 }
 
 =head2 original_language_name
