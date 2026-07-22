@@ -1,4 +1,8 @@
 <div class="list-controls">
+    <button id="list-controls-toggle" aria-expanded="false" aria-controls="list-controls-panel">
+        <span id="list-controls-summary">Sort &amp; filter</span>
+    </button>
+    <div id="list-controls-panel" hidden>
     <div class="control-group">
         <span class="control-label">Sort</span>
         <button class="sort-button" data-column-name="title" data-sort-as="string">Title</button>
@@ -18,6 +22,7 @@
     </div>
     <p class="sort-hint">Click a sort to cycle up &#8593; / down &#8595; / off; add more sorts to
     order within groups, e.g. Language then Year.</p>
+    </div>
 </div>
 <div id="entries">
 <% IF entries.size %>
