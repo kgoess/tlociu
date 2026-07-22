@@ -1,29 +1,36 @@
-<style>
-    .entry-card-body-header {
-        display: flex;
-        justify-content: space-between;
-    }
-</style>
-<button class="sort-button" data-column-name="title" data-sort-as="string">sort by title</button>
-<button class="sort-button" data-column-name="year" data-sort-as="number">sort by year</button>
-<button class="sort-button" data-column-name="country" data-sort-as="string">sort by country</button>
-<button class="sort-button" data-column-name="language" data-sort-as="string">sort by language</button>
-<button class="sort-button" data-column-name="runtime" data-sort-as="number">sort by runtime</button>
-<button class="sort-button" data-column-name="director" data-sort-as="string">sort by director</button>
-<button class="sort-button" data-column-name="dateAdded" data-sort-as="string">sort by date added</button>
-<button class="sort-button" data-column-name="watched" data-sort-as="string">sort by watched (actually this should be show or don't show where watched=1</button>
+<div class="list-controls">
+    <div class="control-group">
+        <span class="control-label">Sort</span>
+        <button class="sort-button" data-column-name="title" data-sort-as="string">Title</button>
+        <button class="sort-button" data-column-name="year" data-sort-as="number">Year</button>
+        <button class="sort-button" data-column-name="country" data-sort-as="string">Country</button>
+        <button class="sort-button" data-column-name="language" data-sort-as="string">Language</button>
+        <button class="sort-button" data-column-name="runtime" data-sort-as="number">Runtime</button>
+        <button class="sort-button" data-column-name="director" data-sort-as="string">Director</button>
+        <button class="sort-button" data-column-name="dateAdded" data-sort-as="string" data-first-dir="desc">Date added</button>
+        <button id="clear-sort" hidden>clear</button>
+    </div>
+    <div class="control-group">
+        <span class="control-label">Show</span>
+        <button class="filter-button" data-filter="all">All</button>
+        <button class="filter-button" data-filter="unwatched">To watch</button>
+        <button class="filter-button" data-filter="watched">Watched</button>
+    </div>
+    <p class="sort-hint">Click a sort to cycle up &#8593; / down &#8595; / off; add more sorts to
+    order within groups, e.g. Language then Year.</p>
+</div>
 <div id="entries">
 <% IF entries.size %>
     <ul id="entry-list">
     <% FOREACH entry IN entries %>
         <% movie = movies.item(entry.id) %>
         <li class="entry-card<% IF entry.watched %> watched<% END %>"
-             data-title="<% movie.title_sortable %>"
+             data-title="<% movie.title_sortable | html %>"
              data-year="<% movie.year %>"
-             data-country="<% movie.origin_country_names.first() %>"
-             data-language="<% movie.original_language_name %>"
+             data-country="<% movie.origin_country_names.first() | html %>"
+             data-language="<% movie.original_language_name | html %>"
              data-runtime="<% movie.info.runtime %>"
-             data-director="<% movie.director_sortable %>"
+             data-director="<% movie.director_sortable | html %>"
              data-date-added="<% entry.date_added.ymd %>"
              data-watched="<% entry.watched %>"
             >
