@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const clearButton = document.querySelector('#clear-sort');
         const filterButtons = Array.from(document.querySelectorAll('.filter-button'));
+        const panelToggle = document.querySelector('#list-controls-toggle');
+        const panel = document.querySelector('#list-controls-panel');
+        const summary = document.querySelector('#list-controls-summary');
         const originalOrder = Array.from(list.children);
 
         // Active sorts in priority order, e.g.
@@ -106,6 +109,15 @@ document.addEventListener('DOMContentLoaded', () => {
             filterButtons.forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.filter === filter);
             });
+
+            const parts = sortKeys.map(k =>
+                buttonFor(k.column).dataset.label + ' ' + (k.dir === 'desc' ? '↓' : '↑'));
+            if (filter !== 'all') {
+                const filterBtn = filterButtons.find(b => b.dataset.filter === filter);
+                if (filterBtn) parts.push(filterBtn.textContent.trim());
+            }
+            summary.textContent = parts.length ? parts.join(' · ') : 'Sort & filter';
+            summary.classList.toggle('has-selection', parts.length > 0);
         }
 
         function refresh() {
@@ -135,6 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
         clearButton.addEventListener('click', () => {
             sortKeys = [];
             refresh();
+        });
+
+        panelToggle.addEventListener('click', () => {
+            const open = panel.hidden;
+            panel.hidden = !open;
+            panelToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            panelToggle.classList.toggle('open', open);
         });
 
         filterButtons.forEach(btn => {
