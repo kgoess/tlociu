@@ -1,0 +1,98 @@
+<h1>Privacy Policy</h1>
+
+<p><em>Effective date: August 8, 2026</em></p>
+
+<p>
+Tlociu ("we", "us") is a personal movie-watchlist application operated by
+Kevin Goess. This policy describes what information the application collects,
+how it is used, and the choices you have. Questions can be sent to
+<a href="mailto:kevin@goess.org">kevin@goess.org</a>.
+</p>
+
+<h2>Information we collect</h2>
+
+<h3>Information from Google Sign-In</h3>
+<p>
+Tlociu uses "Sign in with Google" as its only login method. When you sign in,
+Google sends us an identity token containing your basic profile information:
+your email address, your name, and the URL of your profile picture. We use
+only your <strong>email address</strong>, to match you to an existing Tlociu
+account. We do not store your name or profile picture, and we do not request
+access to any other Google data (no Gmail, Drive, Calendar, or Contacts
+access).
+</p>
+
+<h3>Account information</h3>
+<p>
+Your account record consists of a username, your email address, and the date
+the account was created. Accounts are created manually by the operator;
+signing in with Google does not create an account.
+</p>
+
+<h3>Content you create</h3>
+<p>
+The watchlist entries you create — movie titles, notes, and dates — are
+stored in our database and are associated with your account. They are visible
+only to you when signed in, unless you explicitly mark an entry as public.
+</p>
+
+<h3>Cookies</h3>
+<p>
+We use cookies only to keep you signed in. After a successful Google sign-in
+we set two cookies (your Google identity token and the login method), which
+expire after 72 hours. We do not use analytics, advertising, or tracking
+cookies.
+</p>
+
+<h2>How we use your information</h2>
+<p>We use the information above solely to:</p>
+<ul>
+    <li>authenticate you when you sign in;</li>
+    <li>show you your own watchlist and let you manage it.</li>
+</ul>
+<p>
+We do not sell your information, use it for advertising, or share it with
+third parties, with one narrow exception: movie-title searches you type are
+sent to The Movie Database (TMDB) to look up film details. Those queries are
+not accompanied by your name, email address, or any other identifying
+information.
+</p>
+
+<h2>Google user data and Limited Use</h2>
+<p>
+Tlociu's use and transfer of information received from Google APIs adheres to
+the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google
+API Services User Data Policy</a>, including the Limited Use requirements.
+</p>
+
+<h2>Data storage and security</h2>
+<p>
+Your data is stored in a database on our server, accessible only to the
+operator. Connections to the application are encrypted with HTTPS.
+</p>
+
+<h2>Data retention and deletion</h2>
+<p>
+We keep your account information and watchlist entries for as long as your
+account is active. To have your account and all associated data deleted,
+email <a href="mailto:kevin@goess.org">kevin@goess.org</a>. You can also
+revoke Tlociu's access to your Google account at any time at
+<a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+</p>
+
+<h2>Children</h2>
+<p>
+Tlociu is not directed at children under 13, and we do not knowingly collect
+information from them.
+</p>
+
+<h2>Changes to this policy</h2>
+<p>
+If this policy changes, the new version will be posted at this address with
+an updated effective date.
+</p>
+
+<h2>Contact</h2>
+<p>
+Kevin Goess — <a href="mailto:kevin@goess.org">kevin@goess.org</a>
+</p>

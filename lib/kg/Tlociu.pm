@@ -389,6 +389,32 @@ get '/signin' => sub {
     };
 };
 
+=head2 get /privacy
+
+The privacy policy. Google's OAuth consent-screen verification requires this
+to be publicly accessible (no login) on the app's own domain, so no
+requires_login here.
+
+=cut
+
+get '/privacy' => sub {
+    template privacy => {
+        title => 'Privacy Policy',
+    };
+};
+
+=head2 get /terms
+
+The terms of service, also public for the Google OAuth consent screen.
+
+=cut
+
+get '/terms' => sub {
+    template terms => {
+        title => 'Terms of Service',
+    };
+};
+
 =head2 get /signout
 
 =cut

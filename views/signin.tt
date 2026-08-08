@@ -35,6 +35,11 @@
                 </div>
                 <div class="g_id_signin" data-type="standard"></div>
             </div>
+            <div style="text-align: center; font-size: small; margin-top: 1em;">
+                <a href="<% request.uri_for('/privacy') %>">Privacy Policy</a>
+                &middot;
+                <a href="<% request.uri_for('/terms') %>">Terms of Service</a>
+            </div>
         </div>
         <!-- <div class="bacds one-button">
             <button onclick="document.location='bacds-signin.html'">Login via BACDS</button>
