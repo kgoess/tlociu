@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width" />
+        <style>
+            .main-box{
+                border: 1px solid grey;
+                padding: 3px;
+                width: fit-content;
+                margin: auto;
+            }
+            .one-button{
+                width: fit-content;
+                margin: 1em auto;
+            }
+            .login-div{
+                width: fit-content;
+                margin: auto;
+            }
+            .login-div button{
+                margin: auto;
+            }
+
+        </style>
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        </script>
+    </head>
+    <body>
+        <div class="main-box">
+            <div class="google one-button"><!-- google login button -->
+                 <!-- e.g. 1098...na1g.apps.googleusercontent.com -->
+                <div id="g_id_onload"
+                     data-client_id="<% google_client_id | html %>"
+                     data-ux_mode="redirect"
+                     data-login_uri="<% request.uri_for('/google-signin') %>">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
+            </div>
+        </div>
+        <!-- <div class="bacds one-button">
+            <button onclick="document.location='bacds-signin.html'">Login via BACDS</button>
+        </div>
+        <div>
+            Contact web-committee for access.
+        </div>
+        -->
+    </body>
+</html>
+

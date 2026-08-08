@@ -48,13 +48,17 @@ use DateTime;
 use Dancer2;
 use Dancer2::Plugin::DBIx::Class;
 use Locale::Language qw/code2language/;
+use Switch::Plain qw/sswitch/;
 
+use kg::Tlociu::FederatedAuth;
+use kg::Tlociu::Plugin::Auth; # implements requires_login
+use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken/;
 use kg::Tlociu::TMDB;
 
 our $VERSION = '0.1';
 
-my $apikey = load_apikey();
-my $TMDB = kg::Tlociu::TMDB->new(apikey => $apikey, debug => config->{tmdb_debug});
+my $tmdb_apikey = load_tmdb_apikey();
+my $TMDB = kg::Tlociu::TMDB->new(apikey => $tmdb_apikey, debug => config->{tmdb_debug});
 
 =head2 get /
 
@@ -63,7 +67,7 @@ get / front page, list entries
 
 =cut
 
-get '/' => sub {
+get '/' => requires_login sub {
     my @entries = resultset('Entry')->search(
         { user_id => 1 },
         { order_by => [ qw/watched title/ ] },
@@ -93,7 +97,7 @@ views/entry/create-search.tt.
 
 =cut
 
-post '/search-title' => sub {
+post '/search-title' => requires_login sub {
     my $title = body_parameters->get('title');
 
     # first search for any existing watchlist entries so they don't get dups
@@ -137,7 +141,7 @@ Display a single entry
 
 # :id must be typed as Int or this route also swallows GET /entry/create,
 # since Dancer2 matches routes in declaration order
-get '/entry/:id[Int]' => sub {
+get '/entry/:id[Int]' => requires_login sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
 
@@ -173,7 +177,7 @@ for movie title. Clicking through will lead you to /entry/create.
 
 =cut
 
-get '/entry/create-search' => sub {
+get '/entry/create-search' => requires_login sub {
     template 'entry/create-search', {
         search_url => uri_for('/search-title'),
         img_base_url    => 'https://image.tmdb.org/t/p/',
@@ -188,7 +192,7 @@ and title already filled in as hidden inputs.
 
 =cut
 
-get '/entry/create' => sub {
+get '/entry/create' => requires_login sub {
     my $params = query_parameters();
     if ($params->{tmdb_id} && $params->{tmdb_id} =~ /^[0-9]{0,20}$/) {
         my $movie = $TMDB->movie(id => $params->{tmdb_id});
@@ -211,7 +215,7 @@ row to movies.
 
 =cut
 
-post '/entry/create' => sub {
+post '/entry/create' => requires_login sub {
     my $params = body_parameters();
     var $_ => $params->{ $_ } foreach qw< title >;
     my @missing = grep { $params->{$_} eq '' } qw< tmdb_id title watchlist_notes >;
@@ -265,7 +269,7 @@ Show page to edit an existing entry and handle the results.
 
 =cut
 
-get '/entry/:id/update' => sub {
+get '/entry/:id/update' => requires_login sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
     var $_ => $entry->$_ foreach qw< title tmdb_id watched watchlist_notes watched_notes is_public >;
@@ -285,7 +289,7 @@ get '/entry/:id/update' => sub {
        post_to => uri_for "/entry/$id/update",
     };
 };
-post '/entry/:id/update' => sub {
+post '/entry/:id/update' => requires_login sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
     if( !$entry ) {
@@ -328,7 +332,7 @@ Asks yes/no to delete the entry and handles the result.
 
 =cut
 
-get '/entry/:id/delete' => sub {
+get '/entry/:id/delete' => requires_login sub {
     my $id = route_parameters->get('id');
     my $entry = resultset('Entry')->search({ user_id => 1, id => $id })->first
         or halt qq{No entry found for id "$id"} ;
@@ -348,7 +352,135 @@ post '/entry/:id/delete' => sub {
     redirect uri_for "/";
 };
 
-sub load_apikey {
+=head2 get /signin
+
+=cut
+
+get '/signin' => sub {
+    template signin => {
+        google_client_id => config->{google_client_id}
+    };
+};
+
+=head2 get /signout
+
+=cut
+
+get '/signout' => sub {
+    cookie LoginSession, '', expires => "-1 hours";
+    cookie LoginMethod,  '', expires => "-1 hours";
+    redirect '/signin.html', 302;
+};
+
+
+=head2 before hook
+
+The "before" hook is set up to catch every dancer2 request, check for the
+LoginMethod cookie and associated login cookie, and if they check out then put
+the "signed_in_as" user resultset object in the var() stash.
+
+TODO: It also creates an kg::Tlociu::Auditor in the var() stash under "auditor".
+
+See kg::Tlociu::FederatedAuth for what sets these cookies.
+
+We might not need this for static assets like images or css. Could screen
+on the Accept header, Content Negotiation.
+
+=cut
+
+hook before => sub {
+    my $login_cookie = cookie LoginMethod
+        or return;
+
+    my $login_method = $login_cookie->value;
+
+    my $signed_in_as;
+
+    sswitch ($login_method) {
+        case 'google': {
+            my $google_token = cookie GoogleToken
+                or return;
+            my ($user, $err) = kg::Tlociu::FederatedAuth
+                ->check_google_auth(
+                    $google_token, # the jwt 
+                    schema, 
+                    config->{google_oauth_keys_cache_dir},
+                    config->{google_client_id},
+                );
+            if ($err) {
+                my ($code, $msg) = @$err;
+                warn qq{hook before check_google_auth: "$msg" for token '$google_token"};
+                return;
+            }
+            $signed_in_as = $user;
+        }
+        #case 'session': {
+        #    # this handles both facebook and bacds signins
+        #    my $session_cookie = cookie LoginSession
+        #        or return;
+        #
+        #    my ($programmer, $err) = bacds::Scheduler::FederatedAuth
+        #        ->check_session_cookie($session_cookie);
+        #
+        #    if ($err) {
+        #        warn qq{hook before session: "$err" for $session_cookie};
+        #        return;
+        #    };
+        #
+        #    $signed_in_as = $programmer;
+        #}
+    }
+    if ($signed_in_as) {
+        var signed_in_as => $signed_in_as;
+        #var auditor => bacds::Scheduler::Auditor->new(
+        #    programmer => $signed_in_as,
+        #    http_method => request->method,
+        #);
+    }
+};
+
+=head2 /google-signin
+
+login credential checking redirector
+
+A request to /signin will show a login-with-google button and
+others.
+
+Click on that and you'll get a "Sign in with Google: Choose
+an account to continue to..." page.
+
+Continuing with that will redirect you here.
+
+This endpoint will verify your credential information and set up a
+session.
+
+See also kg::Tlociu::FederatedAuth->check_google_auth.
+
+=cut
+
+post '/google-signin' => sub {
+    my $jwt = params->{credential}
+        or send_error 'missing parameter "credential"' => 400;
+
+    my ($res, $err) = kg::Tlociu::FederatedAuth->check_google_auth(
+        $jwt, 
+        schema, 
+        config->{google_oauth_keys_cache_dir},
+        config->{google_client_id},
+    );
+
+    if ($err) {
+        my ($code, $msg) = @$err;
+        warning "google-signin->check_google_auth returned error $code $msg\n";
+        send_error $msg => $code;
+    }
+
+    cookie GoogleToken, $jwt,     expires => "72 hours";
+    cookie LoginMethod, 'google', expires => "72 hours";
+    redirect '/' => 303;
+};
+
+sub load_tmdb_apikey {
     my $apikey_path = config->{tmdb_apikey}
         or die "please configure tmpdb_apikey in ".app()->environment.".yml or config.yml";
     $apikey_path =~ s/~/$ENV{HOME}/;
