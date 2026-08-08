@@ -14,8 +14,13 @@
     <div class="container">
         <a class="site-title" href="<% request.uri_for('/') %>">Tlociu</a>
         <nav>
-            <a href="<% request.uri_for('/') %>">All Entries</a>
-            <a href="<% request.uri_for('/entry/create-search') %>">New Entry</a>
+            <div class="nav-part">
+                <a href="<% request.uri_for('/') %>">All Entries</a>
+                <a href="<% request.uri_for('/entry/create-search') %>">New Entry</a>
+            </div>
+            <div class="nav-part">
+                <a href="<% request.uri_for('/signout') %>">logout <% vars.signed_in_as.username %></a>
+            </div>
         </nav>
     </div>
 </header>

@@ -74,6 +74,13 @@ h3 { font-size: 1rem; }
 }
 
 #site-header nav {
+    flex-grow: 1;
+    display: flex;
+    gap: 1.25rem;
+    font-size: 0.95rem;
+    justify-content: space-between;
+}
+#site-header nav .nav-part {
     display: flex;
     gap: 1.25rem;
     font-size: 0.95rem;

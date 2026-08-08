@@ -396,7 +396,7 @@ get '/signin' => sub {
 get '/signout' => sub {
     cookie LoginSession, '', expires => "-1 hours";
     cookie LoginMethod,  '', expires => "-1 hours";
-    redirect '/signin.html', 302;
+    redirect '/signin', 302;
 };
 
 

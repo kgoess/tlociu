@@ -29,8 +29,7 @@ screenshots of it in action.
 # TODO features
 
 - add CSRF tokens for forms
-- add basic users
-- add "signin with" buttons for google at least, maybe apple
+- add "signin with" button for apple
 - google signin needs: You must publish a privacy policy that fully documents
   how your application interacts with user data. You must list the privacy
   policy URL in your OAuth client configuration when your application is made
@@ -47,6 +46,7 @@ screenshots of it in action.
 - add tags
 - add other fields: DP, Cinematographer,...?
 - add sorting--Actor, Director, Writer, DP, Cinematographer...
+- add a "Surprise me!" button, to just pick one, maybe with parameters
 - click on an actor's name to see other films on your lists by that actor
 - scale the main list to work at hundreds or thousands of entries, maybe pagination?
 - DONE make installable, run under mod_perl?
