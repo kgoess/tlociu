@@ -68,8 +68,9 @@ get / front page, list entries
 =cut
 
 get '/' => requires_login sub {
+    my $current_user = var 'signed_in_as';
     my @entries = resultset('Entry')->search(
-        { user_id => 1 },
+        { user_id => $current_user->id },
         { order_by => [ qw/watched title/ ] },
     )->all;
     my (%posters, %movies);
@@ -99,10 +100,11 @@ views/entry/create-search.tt.
 
 post '/search-title' => requires_login sub {
     my $title = body_parameters->get('title');
+    my $current_user = var 'signed_in_as';
 
     # first search for any existing watchlist entries so they don't get dups
     my @watchlist_results = resultset('Entry')->search({
-        user_id => 1,
+        user_id => $current_user->id,
         title_lc => { like => lc("%$title%") },
     });
     my @watchlist_entries;
@@ -143,7 +145,11 @@ Display a single entry
 # since Dancer2 matches routes in declaration order
 get '/entry/:id[Int]' => requires_login sub {
     my $id = route_parameters->get('id');
-    my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
+    my $current_user = var 'signed_in_as';
+    my $entry = resultset('Entry')->search({
+        id => $id,
+        user_id => $current_user->id,
+    })->first;
 
     my $movie = $TMDB->movie(id => $entry->tmdb_id);
     $movie->init_from_db(resultset('Movie'));
@@ -226,8 +232,9 @@ post '/entry/create' => requires_login sub {
         forward '/entry/create', $params, { method => 'GET' };
     }
 
+    my $current_user = var 'signed_in_as';
     my @existing = resultset('Entry')->search({
-        user_id => 1,
+        user_id => $current_user->id,
         tmdb_id => $params->{tmdb_id},
     });
     if (@existing) {
@@ -242,7 +249,7 @@ post '/entry/create' => requires_login sub {
     my $entry = do {
         try {
             my %create_params = (
-                user_id         => 1,
+                user_id         => $current_user->id,
                 tmdb_id         => $movie->id,
                 title           => $movie->title,
                 watchlist_notes => $params->get('watchlist_notes'),
@@ -271,7 +278,15 @@ Show page to edit an existing entry and handle the results.
 
 get '/entry/:id/update' => requires_login sub {
     my $id = route_parameters->get('id');
-    my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
+    my $current_user = var 'signed_in_as';
+    my $entry = resultset('Entry')->search({
+        id => $id,
+        user_id => $current_user->id,
+    })->first;
+    if( !$entry ) {
+        status 'not_found';
+        return "Attempt to load non-existent entry $id";
+    }
     var $_ => $entry->$_ foreach qw< title tmdb_id watched watchlist_notes watched_notes is_public >;
     foreach my $field (qw< date_added date_watched >) {
         next unless $entry->$field;
@@ -291,7 +306,11 @@ get '/entry/:id/update' => requires_login sub {
 };
 post '/entry/:id/update' => requires_login sub {
     my $id = route_parameters->get('id');
-    my $entry = resultset('Entry')->search({ id => $id, user_id => 1 })->first;
+    my $current_user = var 'signed_in_as';
+    my $entry = resultset('Entry')->search({
+        id => $id,
+        user_id => $current_user->id
+    })->first;
     if( !$entry ) {
         status 'not_found';
         return "Attempt to update non-existent entry $id";
@@ -334,19 +353,27 @@ Asks yes/no to delete the entry and handles the result.
 
 get '/entry/:id/delete' => requires_login sub {
     my $id = route_parameters->get('id');
-    my $entry = resultset('Entry')->search({ user_id => 1, id => $id })->first
+    my $current_user = var 'signed_in_as';
+    my $entry = resultset('Entry')->search({
+        user_id => $current_user->id,
+        id => $id,
+    })->first
         or halt qq{No entry found for id "$id"} ;
     template 'entry/delete', { id => $id, title => $entry->title };
 };
 post '/entry/:id/delete' => sub {
     my $id = route_parameters->get('id');
+    my $current_user = var 'signed_in_as';
     # Always default to not destroying data
     my $delete_it = body_parameters->get('delete_it')
         or redirect uri_for "/entry/$id";
     if ($delete_it ne 'yes') {
         redirect uri_for "/entry/$id";
     }
-    my $entry = resultset('Entry')->search({ user_id => 1, id => $id })->first
+    my $entry = resultset('Entry')->search({
+        user_id => $current_user->id,
+        id => $id,
+     })->first
         or halt qq{No entry found for id "$id"} ;
     $entry->delete;
     redirect uri_for "/";
@@ -402,8 +429,8 @@ hook before => sub {
                 or return;
             my ($user, $err) = kg::Tlociu::FederatedAuth
                 ->check_google_auth(
-                    $google_token, # the jwt 
-                    schema, 
+                    $google_token, # the jwt
+                    schema,
                     config->{google_oauth_keys_cache_dir},
                     config->{google_client_id},
                 );
@@ -463,8 +490,8 @@ post '/google-signin' => sub {
         or send_error 'missing parameter "credential"' => 400;
 
     my ($res, $err) = kg::Tlociu::FederatedAuth->check_google_auth(
-        $jwt, 
-        schema, 
+        $jwt,
+        schema,
         config->{google_oauth_keys_cache_dir},
         config->{google_client_id},
     );

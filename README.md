@@ -39,6 +39,7 @@ screenshots of it in action.
 - test vs. live, list of test users here https://console.cloud.google.com/auth/audience?project=tlociu
 - https://www.goess.org/tlociu/terms-of-service for https://console.cloud.google.com/auth/branding?project=tlociu
 - https://www.goess.org/tlociu/privacy-policy for https://console.cloud.google.com/auth/branding?project=tlociu
+- implement audit table
 - see the FIXMEs in style.css change those random colors to use var()s
 - add gzip middleware
 - make date_added include timestamp so sorting for multiple entries in the same day works
