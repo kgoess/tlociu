@@ -76,6 +76,8 @@
     <% END %>
     </ul>
 <% ELSE %>
-    <p>No entries found.</p>
+    <p>No entries found.
+    <!-- if we implement search filters then we'll need to conditionalize this next line -->
+    <p> Try clicking on that "New Entry" link up there and adding a movie to your watchlist!
 <% END %>
 </div>
