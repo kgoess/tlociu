@@ -254,8 +254,10 @@ post '/entry/create' => requires_login sub {
                 title           => $movie->title,
                 watchlist_notes => $params->get('watchlist_notes'),
                 date_added      => $params->get('date_added'),
-                watched_notes   => $params->get('watched_notes'),
                 date_watched    => $params->get('date_watched') || undef,
+                watched         => $params->{watched},
+                watched_notes   => $params->get('watched_notes'),
+                is_public       => $params->{is_public},
             );
             resultset('Entry')->create(\%create_params);
         }
@@ -328,9 +330,9 @@ post '/entry/:id/update' => requires_login sub {
             title           => $params->{title},
             watchlist_notes => $params->{watchlist_notes},
             date_added      => $params->{date_added},
+            date_watched    => $params->{date_watched} || undef,
             watched         => $params->{watched},
             watched_notes   => $params->{watched_notes},
-            date_watched    => $params->{date_watched} || undef,
             is_public       => $params->{is_public},
         });
     }
