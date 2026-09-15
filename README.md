@@ -28,19 +28,10 @@ screenshots of it in action.
 
 # TODO features
 
-- add CSRF tokens for forms
 - add "signin with" button for apple
-- google signin needs: You must publish a privacy policy that fully documents
-  how your application interacts with user data. You must list the privacy
-  policy URL in your OAuth client configuration when your application is made
-  available to the public.
-    https://developers.google.com/terms/api-services-user-data-policy
 - test vs. live, list of test users here https://console.cloud.google.com/auth/audience?project=tlociu
-- https://www.goess.org/tlociu/terms-of-service for https://console.cloud.google.com/auth/branding?project=tlociu
-- https://www.goess.org/tlociu/privacy-policy for https://console.cloud.google.com/auth/branding?project=tlociu
 - implement audit table
 - see the FIXMEs in style.css change those random colors to use var()s
-- add gzip middleware
 - make date_added include timestamp so sorting for multiple entries in the same day works
 - add unit tests, any tests
 - add tags
@@ -49,11 +40,6 @@ screenshots of it in action.
 - add a "Surprise me!" button, to just pick one, maybe with parameters
 - click on an actor's name to see other films on your lists by that actor
 - scale the main list to work at hundreds or thousands of entries, maybe pagination?
-- DONE make installable, run under mod_perl?
-- DONE check error reporting on update screen, I think it's being squelched
-- DONE add basic sorting to the watch list--by date, by director
-- DONE conditional formatting for already watched films on the list
-- DONE make watch/watched button clickable to update the entry
 
 let mark as watched w/o going into edit screen
 sort options: watched/unwatched, by date, alpha, director
