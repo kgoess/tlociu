@@ -33,6 +33,7 @@ use warnings;
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
+use Data::Dump qw/dump/;
 use Encode qw/encode_utf8/;
 use JSON::MaybeXS qw/encode_json decode_json/;
 use List::Util qw/first/;

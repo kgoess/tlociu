@@ -56,7 +56,7 @@
                     <div>
                         <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html %></a></h2>
                         <p class="entry-meta"><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name _ ' · ' _  movie.info.runtime | html %>&nbsp;minutes</p>
-                        <p class="entry-meta"><% movie.director %>, director</p>
+                        <p class="entry-meta"><% movie.director.join(', ') %>, director</p>
                         <p class="entry-meta">Added <% entry.date_added.ymd | html %></p>
                     </div>
                 </div>
