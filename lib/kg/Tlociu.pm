@@ -528,8 +528,8 @@ post '/google-signin' => sub {
         send_error $msg => $code;
     }
 
-    cookie GoogleToken, $jwt,     expires => "72 hours";
-    cookie LoginMethod, 'google', expires => "72 hours";
+    cookie GoogleToken, $jwt,     expires => "1 week";
+    cookie LoginMethod, 'google', expires => "1 week";
     redirect '/' => 303;
 };
 
