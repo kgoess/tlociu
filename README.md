@@ -28,7 +28,6 @@ screenshots of it in action.
 
 # TODO features
 
-- add CSRF tokens for forms
 - add "signin with" button for apple
 - test vs. live, list of test users here https://console.cloud.google.com/auth/audience?project=tlociu
 - implement audit table
