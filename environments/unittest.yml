@@ -39,3 +39,4 @@ strict_config_allow:
 tmdb_apikey: ~/.tmdb
 tmdb_debug: 1
 
+csrf_secret: THIS-TEST-VALUE-IS-NOT-SECRET-AT-ALL

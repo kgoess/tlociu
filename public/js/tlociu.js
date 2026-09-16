@@ -171,3 +171,30 @@ document.addEventListener('DOMContentLoaded', () => {
     initEntryListControls();
     renderMarkdowns();
 });
+
+/* If we end up doing any AJAX here's the CSRF dance:
+ *
+// Helper function to read the CSRF cookie value
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+// Perform a secure, state-changing request
+async function updateBackendData() {
+    const csrfToken = getCookie('csrf_token');
+
+    const response = await fetch('/api/update-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken // Send the exact string in the header
+        },
+        body: JSON.stringify({ item: "example value" })
+    });
+
+    const result = await response.json();
+    console.log(result);
+}
+*/

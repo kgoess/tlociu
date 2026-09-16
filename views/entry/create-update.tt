@@ -3,6 +3,7 @@
     <div class="error">ERROR: <% vars.error_message | html %></div>
 <% END %>
     <form method="post" action="<% post_to %>">
+        <input type="hidden" name="csrf_token" value="<% current_csrf | html %>">
         <div class="field">
             <label for="title">Title</label>
             <% IF vars.title %>

@@ -25,12 +25,15 @@
 
       // 4. Automatically capture all form input values
       const formData = new FormData(form);
+      const queryString = new URLSearchParams(formData).toString();
 
       try {
         // 5. Send data via an asynchronous API call
-        const response = await fetch('<% search_url %>', {
-          method: 'POST',
-          body: formData // Handled automatically by Fetch API
+
+        const url = `<% search_url %>?${queryString}`;
+        const response = await fetch(url, {
+          method: 'GET',
+          // body: formData // Handled automatically by Fetch API
         });
 
         if (response.ok) {

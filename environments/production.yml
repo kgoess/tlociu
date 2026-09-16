@@ -34,3 +34,6 @@ tmdb_debug: 0
 
 google_client_id: 932566398529-2lc5qq3inr9erps17abr9513bublus2t.apps.googleusercontent.com
 google_oauth_keys_cache_dir: /var/cache/httpd/tlociu
+
+# e.g. uuidgen > /var/www/tlociu/private/csrf-secret
+csrf_secret: /var/www/tlociu/private/csrf-secret

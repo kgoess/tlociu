@@ -44,11 +44,14 @@ use Try::Tiny;
 # use feature 'try';
 # no warnings 'experimental::try';
 
+use Crypt::URandom qw(urandom);
 use DateTime;
+use Digest::SHA qw(hmac_sha256_hex);
 use Dancer2;
 use Dancer2::Plugin::DBIx::Class;
 use Locale::Language qw/code2language/;
 use Switch::Plain qw/sswitch/;
+
 
 use kg::Tlociu::FederatedAuth;
 use kg::Tlociu::Plugin::Auth; # implements requires_login
@@ -89,7 +92,7 @@ get '/' => requires_login sub {
     };
 };
 
-=head2 post /search-title
+=head2 get /search-title
 
 Handles the AJAX search for title from the /entry/create-search page.
 
@@ -98,8 +101,8 @@ views/entry/create-search.tt.
 
 =cut
 
-post '/search-title' => requires_login sub {
-    my $title = body_parameters->get('title');
+get '/search-title' => requires_login sub {
+    my $title = query_parameters->get('title');
     my $current_user = var 'signed_in_as';
 
     # first search for any existing watchlist entries so they don't get dups
@@ -210,6 +213,7 @@ get '/entry/create' => requires_login sub {
     var date_added => DateTime->now(time_zone => 'floating')->ymd('-');
     template 'entry/create-update', {
        post_to => uri_for('/entry/create'),
+       current_csrf => cookie('csrf_token'),
     };
 };
 
@@ -303,7 +307,8 @@ get '/entry/:id/update' => requires_login sub {
         }
     }
     template 'entry/create-update', {
-       post_to => uri_for "/entry/$id/update",
+       post_to => uri_for("/entry/$id/update"),
+       current_csrf => cookie('csrf_token'),
     };
 };
 post '/entry/:id/update' => requires_login sub {
@@ -360,8 +365,12 @@ get '/entry/:id/delete' => requires_login sub {
         user_id => $current_user->id,
         id => $id,
     })->first
-        or halt qq{No entry found for id "$id"} ;
-    template 'entry/delete', { id => $id, title => $entry->title };
+        or halt qq{No entry found for id "$id"};
+    template 'entry/delete', {
+       id => $id,
+       title => $entry->title,
+       current_csrf => cookie('csrf_token'),
+   };
 };
 post '/entry/:id/delete' => sub {
     my $id = route_parameters->get('id');
@@ -428,9 +437,9 @@ get '/signout' => sub {
 };
 
 
-=head2 before hook
+=head2 before hook for login
 
-The "before" hook is set up to catch every dancer2 request, check for the
+This "before" hook is set up to catch every dancer2 request, check for the
 LoginMethod cookie and associated login cookie, and if they check out then put
 the "signed_in_as" user resultset object in the var() stash.
 
@@ -491,6 +500,72 @@ hook before => sub {
         #    programmer => $signed_in_as,
         #    http_method => request->method,
         #);
+    }
+};
+
+=head2 before hooks for CSRF
+
+=cut
+
+
+# --- generate CSRF token for the frontend context ---
+hook before => sub {
+    # If the cookie doesn't exist, generate a stateless CSRF token
+    if (!cookie('csrf_token')) {
+        # 1. Generate 32 bytes of secure random data encoded as hex
+        my $random_val = unpack("H*", urandom(32));
+
+        # 2. Cryptographically sign the token using an HMAC
+        my $csrf_secret = config->{csrf_secret};
+        my $signature = hmac_sha256_hex($random_val, $csrf_secret);
+        my $final_token = "$random_val.$signature";
+
+        # 3. Drop the cookie. It must be accessible via frontend JS
+        # so HttpOnly is omitted, but SameSite and Secure protect it.
+        cookie csrf_token => $final_token,
+            path     => '/',
+            secure   => 1,             # Requires HTTPS
+            same_site => 'Lax';        # Protects cross-origin requests
+    }
+};
+
+# --- Middleware: Validate CSRF token on state-changing requests ---
+hook before => sub {
+    my $method = request->method;
+    my $path = request->path;
+
+    # Only validate state-changing HTTP methods
+    # Need to skip /google-signin, which has its own csrf protection
+    if ($method =~ /^(POST|PUT|DELETE|PATCH)$/i && $path !~ m{/google-signin$} ) {
+
+        # Extract token from the incoming custom request header
+        my $submitted_token = request_header('X-CSRF-Token')
+                           || body_parameters->get('csrf_token');
+
+        # Extract token from the browser cookie
+        my $cookie = cookie('csrf_token')
+            or send_error("CSRF Validation Failed: missing cookie");
+
+        my $cookie_token = $cookie->value();
+
+        # Halt if either token is completely missing
+        if (!$submitted_token || !$cookie_token) {
+            send_error("CSRF Validation Failed: Missing token.", 403);
+        }
+
+        # Stateless Security Rule 1: The header token must exactly match the cookie token
+        if ($submitted_token ne $cookie_token) {
+            send_error("CSRF Validation Failed: Token mismatch.", 403);
+        }
+
+        # Stateless Security Rule 2: Verify the cryptographic signature on the server side
+        my ($random_val, $signature) = split(/\./, $cookie_token);
+        my $csrf_secret = config->{csrf_secret};
+        my $expected_signature = hmac_sha256_hex($random_val, $csrf_secret);
+
+        if (!$signature || $signature ne $expected_signature) {
+            send_error("CSRF Validation Failed: Invalid token signature.", 403);
+        }
     }
 };
 
