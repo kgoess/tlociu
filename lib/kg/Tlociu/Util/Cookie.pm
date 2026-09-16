@@ -20,11 +20,17 @@ use 5.16.0;
 use warnings;
 
 use Exporter 'import';
-our @EXPORT_OK = qw/LoginMethod LoginSession GoogleToken /;
+our @EXPORT_OK = qw/
+    CSRFToken
+    GoogleToken
+    LoginMethod
+    LoginSession
+/;
 
+sub CSRFToken()    { cookie_name('CSRFToken')    };
+sub GoogleToken()  { cookie_name('GoogleToken')  };
 sub LoginMethod()  { cookie_name('LoginMethod')  };
 sub LoginSession() { cookie_name('LoginSession') };
-sub GoogleToken()  { cookie_name('GoogleToken')  };
 
 sub cookie_name {
     my ($s) = @_;

@@ -183,7 +183,7 @@ function getCookie(name) {
 
 // Perform a secure, state-changing request
 async function updateBackendData() {
-    const csrfToken = getCookie('csrf_token');
+    const csrfToken = getCookie( this might be prepended with $ENV{USER} in dev...? 'CSRFToken');
 
     const response = await fetch('/api/update-data', {
         method: 'POST',

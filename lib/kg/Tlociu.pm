@@ -55,7 +55,7 @@ use Switch::Plain qw/sswitch/;
 
 use kg::Tlociu::FederatedAuth;
 use kg::Tlociu::Plugin::Auth; # implements requires_login
-use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken/;
+use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken CSRFToken/;
 use kg::Tlociu::TMDB;
 
 our $VERSION = '0.1';
@@ -213,7 +213,7 @@ get '/entry/create' => requires_login sub {
     var date_added => DateTime->now(time_zone => 'floating')->ymd('-');
     template 'entry/create-update', {
        post_to => uri_for('/entry/create'),
-       current_csrf => cookie('csrf_token'),
+       current_csrf => cookie(CSRFToken),
     };
 };
 
@@ -308,7 +308,7 @@ get '/entry/:id/update' => requires_login sub {
     }
     template 'entry/create-update', {
        post_to => uri_for("/entry/$id/update"),
-       current_csrf => cookie('csrf_token'),
+       current_csrf => cookie(CSRFToken),
     };
 };
 post '/entry/:id/update' => requires_login sub {
@@ -369,7 +369,7 @@ get '/entry/:id/delete' => requires_login sub {
     template 'entry/delete', {
        id => $id,
        title => $entry->title,
-       current_csrf => cookie('csrf_token'),
+       current_csrf => cookie(CSRFToken),
    };
 };
 post '/entry/:id/delete' => sub {
@@ -511,7 +511,7 @@ hook before => sub {
 # --- generate CSRF token for the frontend context ---
 hook before => sub {
     # If the cookie doesn't exist, generate a stateless CSRF token
-    if (!cookie('csrf_token')) {
+    if (!cookie CSRFToken) {
         # 1. Generate 32 bytes of secure random data encoded as hex
         my $random_val = unpack("H*", urandom(32));
 
@@ -522,7 +522,7 @@ hook before => sub {
 
         # 3. Drop the cookie. It must be accessible via frontend JS
         # so HttpOnly is omitted, but SameSite and Secure protect it.
-        cookie csrf_token => $final_token,
+        cookie CSRFToken() => $final_token, # the () is required here
             path     => '/',
             secure   => 1,             # Requires HTTPS
             same_site => 'Lax';        # Protects cross-origin requests
@@ -543,8 +543,11 @@ hook before => sub {
                            || body_parameters->get('csrf_token');
 
         # Extract token from the browser cookie
-        my $cookie = cookie('csrf_token')
-            or send_error("CSRF Validation Failed: missing cookie");
+        my $cookie = cookie CSRFToken;
+
+        if (!$cookie) {
+            send_error("CSRF Validation Failed: Missing cookie.", 403);
+        }
 
         my $cookie_token = $cookie->value();
 
