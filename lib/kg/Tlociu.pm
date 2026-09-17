@@ -55,7 +55,7 @@ use Switch::Plain qw/sswitch/;
 
 use kg::Tlociu::FederatedAuth;
 use kg::Tlociu::Plugin::Auth; # implements requires_login
-use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken CSRFToken/;
+use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken CSRFToken AppleToken/;
 use kg::Tlociu::TMDB;
 
 our $VERSION = '0.1';
@@ -396,7 +396,8 @@ post '/entry/:id/delete' => sub {
 
 get '/signin' => sub {
     template signin => {
-        google_client_id => config->{google_client_id}
+        google_client_id => config->{google_client_id},
+        apple_client_id  => config->{apple_client_id},
     };
 };
 
@@ -478,6 +479,23 @@ hook before => sub {
             }
             $signed_in_as = $user;
         }
+        case 'apple': {
+            my $apple_token = cookie AppleToken
+                or return;
+            my ($user, $err) = kg::Tlociu::FederatedAuth
+                ->check_apple_auth(
+                    $apple_token, # the jwt
+                    schema,
+                    config->{apple_oauth_keys_cache_dir},
+                    config->{apple_client_id},
+                );
+            if ($err) {
+                my ($code, $msg) = @$err;
+                warn qq{hook before check_apple_auth: "$msg" for token '$apple_token"};
+                return;
+            }
+            $signed_in_as = $user;
+        }
         #case 'session': {
         #    # this handles both facebook and bacds signins
         #    my $session_cookie = cookie LoginSession
@@ -535,8 +553,11 @@ hook before => sub {
     my $path = request->path;
 
     # Only validate state-changing HTTP methods
-    # Need to skip /google-signin, which has its own csrf protection
-    if ($method =~ /^(POST|PUT|DELETE|PATCH)$/i && $path !~ m{/google-signin$} ) {
+    # Need to skip /*-signin, which has their own csrf protections
+    if ($method =~ /^(POST|PUT|DELETE|PATCH)$/i &&
+        $path !~ m{/google-signin$}             &&
+        $path !~ m{/apple-signin$}
+    ) {
 
         # Extract token from the incoming custom request header
         my $submitted_token = request_header('X-CSRF-Token')
@@ -610,6 +631,41 @@ post '/google-signin' => sub {
 
     cookie GoogleToken, $jwt,     expires => "1 week";
     cookie LoginMethod, 'google', expires => "1 week";
+    redirect '/' => 303;
+};
+
+=head2 /apple-signin
+
+Same as /google-signin but for the Sign in with Apple button.
+
+The signin page's AppleID.auth.init() is configured with usePopup:false and
+this endpoint as the redirectURI, so after the user authenticates with Apple,
+Apple POSTs form params here: "id_token" (a JWT), "code", "state", and (first
+sign-in only) "user".
+
+See also kg::Tlociu::FederatedAuth->check_apple_auth.
+
+=cut
+
+post '/apple-signin' => sub {
+    my $jwt = params->{id_token}
+        or send_error 'missing parameter "id_token"' => 400;
+
+    my ($res, $err) = kg::Tlociu::FederatedAuth->check_apple_auth(
+        $jwt,
+        schema,
+        config->{apple_oauth_keys_cache_dir},
+        config->{apple_client_id},
+    );
+
+    if ($err) {
+        my ($code, $msg) = @$err;
+        warning "apple-signin->check_apple_auth returned error $code $msg\n";
+        send_error $msg => $code;
+    }
+
+    cookie AppleToken,  $jwt,     expires => "72 hours";
+    cookie LoginMethod, 'apple',  expires => "72 hours";
     redirect '/' => 303;
 };
 

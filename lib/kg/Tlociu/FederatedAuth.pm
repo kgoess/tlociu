@@ -142,6 +142,83 @@ sub check_google_auth {
     return $user;
 }
 
+=head2 check_apple_auth
+
+See the /apple-signin route in kg::Tlociu.
+
+Same deal as check_google_auth: verify the id_token JWT against Apple's
+published keys and look the user up by email.
+
+Returns ($user, $err), with only one of those populated.
+
+Note that if the user chose Apple's "Hide My Email" option, the email in the
+token will be a @privaterelay.appleid.com address, which won't match anything
+in our users table, so they'll get "No user found".
+
+See
+
+https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js
+
+https://developer.apple.com/documentation/sign_in_with_apple/fetch_apple_s_public_key_for_verifying_token_signature
+
+=cut
+
+sub check_apple_auth {
+    my ($class, $jwt, $schema, $cache_dir, $apple_client_id) = @_;
+
+    $cache_dir or die "missing cache_dir in call to check_apple_auth, please set apple_oauth_keys_cache_dir in your environment ";
+
+    my $oauth_keys = fetch_apple_oauth_keys($cache_dir)
+        or return undef, [500, 'fetching apple keys failed'];
+
+    my $decoded;
+
+    eval {
+        $decoded = decode_jwt(
+            token => $jwt,
+            kid_keys => $oauth_keys,
+            verify_iss => 'https://appleid.apple.com',
+            verify_aud => $apple_client_id,
+            decode_payload => undef,
+        );
+
+        # $decoded will be something like this:
+        # {
+        #   aud => "org.goess.tlociu.signin",
+        #   auth_time => 1659318152,
+        #   email => 'homer@springfield.com',
+        #   email_verified => "true",
+        #   exp => 1659404552,
+        #   iat => 1659318152,
+        #   iss => "https://appleid.apple.com",
+        #   nonce_supported => bless(do{\(my $o = 1)}, "JSON::PP::Boolean"),
+        #   sub => "001234.abcdef1234567890abcdef1234567890.1234",
+        # }
+    };
+    if (my $err = $@) {
+        $err =~ s/ at .+//;
+        return undef, [400, $err];
+    }
+
+    if (!ref $decoded) {
+        return undef, [401, 'Login failed'];
+    }
+
+    $decoded->{email}
+        or return undef, [401, 'No email in Apple token'];
+
+    my $rs = $schema->resultset('User')->search({
+         email => $decoded->{email},
+    });
+
+    my $user = $rs->first
+        or return undef, [401, "No user found for '$decoded->{email}'"];
+    $user->is_deleted
+         and return undef, [403, "The account for '$decoded->{email}' is deleted"];
+
+    return $user;
+}
+
 =head2 fetch_google_oauth_keys
 
 Fetching from https://www.googleapis.com/oauth2/v2/certs per notes on
@@ -152,7 +229,40 @@ use HTTP::Request::Common;
 sub fetch_google_oauth_keys {
     my ($cache_dir) = @_;
 
-    $cache_dir or die "missing cache_dir in call to check_google_auth, please set google_oauth_keys_cache_dir in your environment ";
+    return fetch_oauth_keys(
+        $cache_dir,
+        'google-oauth-keys.json',
+        'https://www.googleapis.com/oauth2/v2/certs',
+    );
+}
+
+=head2 fetch_apple_oauth_keys
+
+Same as fetch_google_oauth_keys but for Apple's JWKS endpoint.
+
+=cut
+
+sub fetch_apple_oauth_keys {
+    my ($cache_dir) = @_;
+
+    return fetch_oauth_keys(
+        $cache_dir,
+        'apple-oauth-keys.json',
+        'https://appleid.apple.com/auth/keys',
+    );
+}
+
+=head2 fetch_oauth_keys
+
+Returns the decoded JSON key set for the given provider, from the cache
+file if it's less than a day old, otherwise re-fetched from $url.
+
+=cut
+
+sub fetch_oauth_keys {
+    my ($cache_dir, $filename, $url) = @_;
+
+    $cache_dir or die "missing cache_dir in call to fetch_oauth_keys, please set the *_oauth_keys_cache_dir in your environment ";
 
     $cache_dir =~ s/~/$ENV{HOME}/;
 
@@ -162,31 +272,31 @@ sub fetch_google_oauth_keys {
 
     my $min_acceptable_mtime = time() - 60*60*24;
 
-    my $path = "$cache_dir/google-oauth-keys.json";
+    my $path = "$cache_dir/$filename";
 
     my $json;
 
     if (! -e $path || (stat($path))[9] < $min_acceptable_mtime) {
-        $json = refresh_google_oauth_keys($cache_dir, $path);
+        $json = refresh_oauth_keys($cache_dir, $path, $url);
 
     } else {
         open my $fh, "<", $path or do {
-            warn "can't read google oauth keys from $path: $!";
+            warn "can't read oauth keys from $path: $!";
             return;
         };
         $json = join '', <$fh>;
     }
 
     if (!$json) {
-        warn "unable to fetch google_auth_keys";
+        warn "unable to fetch oauth keys for $url";
         return;
     }
 
     return decode_json $json;
 }
 
-sub refresh_google_oauth_keys {
-    my ($cache_dir, $path) = @_;
+sub refresh_oauth_keys {
+    my ($cache_dir, $path, $url) = @_;
 
     if (! -e $cache_dir) {
         mkdir $cache_dir or do {
@@ -196,7 +306,6 @@ sub refresh_google_oauth_keys {
     }
 
     my $ua = LWP::UserAgent->new;
-    my $url = 'https://www.googleapis.com/oauth2/v2/certs';
     my $response = $ua->request(GET $url);
 
     my $json;

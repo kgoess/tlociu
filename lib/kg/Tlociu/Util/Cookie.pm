@@ -10,7 +10,7 @@ your $USER to the cookie name.
 
 =head1 EXPORTS
 
-LoginMethod, LoginSession, GoogleToken
+LoginMethod, LoginSession, GoogleToken, AppleToken
 
 =cut
 
@@ -21,12 +21,14 @@ use warnings;
 
 use Exporter 'import';
 our @EXPORT_OK = qw/
+    AppleToken
     CSRFToken
     GoogleToken
     LoginMethod
     LoginSession
 /;
 
+sub AppleToken()   { cookie_name('AppleToken')   };
 sub CSRFToken()    { cookie_name('CSRFToken')    };
 sub GoogleToken()  { cookie_name('GoogleToken')  };
 sub LoginMethod()  { cookie_name('LoginMethod')  };
