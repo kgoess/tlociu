@@ -44,3 +44,8 @@ google_client_id: 932566398529-2lc5qq3inr9erps17abr9513bublus2t.apps.googleuserc
 google_oauth_keys_cache_dir: ~/.tlociu-cache-dir
 
 csrf_secret: THIS-DEV-VALUE-IS-NOT-SECRET-AT-ALL
+
+# Sign in with Apple: the Services ID from developer.apple.com
+# (Certificates, Identifiers & Profiles -> Identifiers -> Services IDs)
+apple_client_id: org.goess.tlociu.signin
+apple_oauth_keys_cache_dir: ~/.tlociu-cache-dir

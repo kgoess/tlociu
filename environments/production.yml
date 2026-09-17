@@ -37,3 +37,8 @@ google_oauth_keys_cache_dir: /var/cache/httpd/tlociu
 
 # e.g. uuidgen > /var/www/tlociu/private/csrf-secret
 csrf_secret: /var/www/tlociu/private/csrf-secret
+
+# Sign in with Apple: the Services ID from developer.apple.com
+# (Certificates, Identifiers & Profiles -> Identifiers -> Services IDs)
+apple_client_id: org.goess.tlociu.signin
+apple_oauth_keys_cache_dir: /var/cache/httpd/tlociu

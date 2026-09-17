@@ -22,7 +22,7 @@
 
         </style>
         <script src="https://accounts.google.com/gsi/client" async defer></script>
-        </script>
+        <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
     </head>
     <body>
         <div class="main-box">
@@ -34,6 +34,23 @@
                      data-login_uri="<% request.uri_for('/google-signin') %>">
                 </div>
                 <div class="g_id_signin" data-type="standard"></div>
+            </div>
+            <div class="apple one-button"><!-- apple login button -->
+                <div id="appleid-signin"
+                     data-color="black"
+                     data-border="true"
+                     data-type="sign-in"
+                     data-width="200"
+                     data-height="40">
+                </div>
+                <script>
+                    AppleID.auth.init({
+                        clientId: "<% apple_client_id | html %>",
+                        scope: "email",
+                        redirectURI: "<% request.uri_for('/apple-signin') %>",
+                        usePopup: false
+                    });
+                </script>
             </div>
             <div style="text-align: center; font-size: small; margin-top: 1em;">
                 <a href="<% request.uri_for('/privacy') %>">Privacy Policy</a>
