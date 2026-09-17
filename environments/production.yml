@@ -28,9 +28,16 @@ plugins:
 strict_config_allow:
     - tmdb_apikey
     - tmdb_debug
+    - google_client_id
+    - google_oauth_keys_cache_dir
+    - csrf_secret
+    - apple_client_id
+    - apple_oauth_keys_cache_dir
 
 tmdb_apikey: /var/www/tlociu/private/apikey
 tmdb_debug: 0
+
+strict_utf8: 1
 
 google_client_id: 932566398529-2lc5qq3inr9erps17abr9513bublus2t.apps.googleusercontent.com
 google_oauth_keys_cache_dir: /var/cache/httpd/tlociu
