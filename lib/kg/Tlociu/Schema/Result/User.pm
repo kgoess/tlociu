@@ -156,9 +156,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 tags
 
-# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-11-02 04:02:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W01cbmARl+Ua78yzHmQPWA
+Type: has_many
+
+Related object: L<kg::Tlociu::Schema::Result::Tag>
+
+=cut
+
+__PACKAGE__->has_many(
+  "tags",
+  "kg::Tlociu::Schema::Result::Tag",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-11-02 06:04:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ce8JDRSENz1/wpOtXqZfiw
 
 
 use kg::Tlociu::Util::Xid qw/new_xid/;

@@ -46,6 +46,7 @@ use Try::Tiny;
 
 use Crypt::URandom qw(urandom);
 use DateTime;
+use List::Util qw/max/;
 use Digest::SHA qw(hmac_sha256_hex);
 use Dancer2;
 use Dancer2::Plugin::DBIx::Class;
@@ -58,9 +59,13 @@ use kg::Tlociu::Plugin::Auth; # implements requires_login
 use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken CSRFToken AppleToken/;
 use kg::Tlociu::Util::Xid qw/is_xid/;
 use kg::Tlociu::Schema::Result::Entry; # for is_valid_visibility
+use kg::Tlociu::Schema::Result::Tag;
 use kg::Tlociu::TMDB;
 
 our $VERSION = '0.1';
+
+my $Entry = 'kg::Tlociu::Schema::Result::Entry';
+my $Tag   = 'kg::Tlociu::Schema::Result::Tag';
 
 my $tmdb_apikey = load_tmdb_apikey();
 my $TMDB = kg::Tlociu::TMDB->new(apikey => $tmdb_apikey, debug => config->{tmdb_debug});
@@ -74,18 +79,9 @@ get / front page, list entries
 
 get '/' => requires_login sub {
     my $current_user = var 'signed_in_as';
-    my @entries = resultset('Entry')->search(
-        { user_id => $current_user->id },
-        { order_by => [ qw/watched title/ ] },
-    )->all;
-    my ($movies, $posters) = load_movies(\@entries);
-    template 'index', {
-        entries    => \@entries,
-        movies     => $movies,
-        posters    => $posters,
-        base_url   => 'https://image.tmdb.org/t/p/',
-        share_url  => $current_user->xid && uri_for('/users/' . $current_user->xid),
-    };
+    return show_list($current_user, 'private', '/',
+        share_url => $current_user->xid && uri_for('/users/' . $current_user->xid),
+    );
 };
 
 =head2 get /users/:xid
@@ -94,56 +90,156 @@ A user's list as the viewer is allowed to see it: their public entries for
 anybody, plus their 'users' entries if you're signed in, or everything if it's
 your own list. This is the link from "Share my list". Doesn't require login.
 
+Both lists can be filtered by tag, e.g. /?tag=horror&tag=Kurosawa shows
+entries with both tags.
+
 =cut
 
 get '/users/:xid' => sub {
-    my $xid = route_parameters->get('xid');
-    my $owner = is_xid($xid) && resultset('User')->search({
-        xid        => $xid,
-        is_deleted => 0,
-    })->first;
+    my $owner = owner_from_xid(route_parameters->get('xid'));
     if (!$owner) {
         status 'not_found';
         return "No list found at that address";
     }
+    my $viewer_level = viewer_level($owner);
+    return show_list($owner, $viewer_level, '/users/' . $owner->xid,
+        read_only  => 1,
+        list_owner => $owner->username,
+        title      => $owner->username . "'s list",
+        tags_url   => uri_for('/users/' . $owner->xid . '/tags'),
+    );
+};
 
+sub owner_from_xid {
+    my ($xid) = @_;
+    return is_xid($xid) && resultset('User')->search({
+        xid        => $xid,
+        is_deleted => 0,
+    })->first;
+}
+
+# 'private' for the owner (sees everything), 'users' for anybody else signed
+# in, 'public' for everybody else
+sub viewer_level {
+    my ($owner) = @_;
     my $viewer = var 'signed_in_as';
-    my $viewer_level = !$viewer                  ? 'public'
-                     : $viewer->id == $owner->id ? 'private'
-                     :                             'users';
+    return !$viewer                  ? 'public'
+         : $viewer->id == $owner->id ? 'private'
+         :                             'users';
+}
 
-    my $Entry = 'kg::Tlociu::Schema::Result::Entry';
+# Renders $owner's list as seen by a viewer at $viewer_level, filtered by any
+# ?tag= params. $list_path is where this list lives, for the tag links.
+sub show_list {
+    my ($owner, $viewer_level, $list_path, %template_params) = @_;
+
+    my ($tag_search, $tag_filter) = tag_filter($owner, $viewer_level, $list_path);
     my @rows = resultset('Entry')->search(
         {
-            user_id    => $owner->id,
-            is_deleted => 0,
-            visibility => { -in => $Entry->visibilities_seen_by($viewer_level) },
+            'me.user_id'    => $owner->id,
+            'me.is_deleted' => 0,
+            'me.visibility' => { -in => $Entry->visibilities_seen_by($viewer_level) },
+            %$tag_search,
         },
-        { order_by => [ qw/watched title/ ] },
+        { order_by => [ qw/me.watched me.title/ ] },
     )->all;
     my ($movies, $posters) = load_movies(\@rows);
+    my $tags_by_entry = $Tag->tags_by_entry(schema, $owner->id, $viewer_level);
 
     # Only hand the template what this viewer may see, so a template change
-    # can't leak notes they shouldn't see.
+    # can't leak notes or tags they shouldn't see.
     my @entries = map {
         my $row = $_;
         +{
             (map { $_ => $row->$_ } qw< id title watched date_added date_watched >),
             (map { $_ => $row->notes_seen_by($_, $viewer_level) ? $row->$_ : undef }
                 qw< watchlist_notes watched_notes >),
+            tags => [ map { tag_for_template($_, $viewer_level) }
+                @{ $tags_by_entry->{ $row->id } || [] } ],
         };
     } @rows;
 
-    template 'index', {
-        entries    => \@entries,
-        movies     => $movies,
-        posters    => $posters,
-        base_url   => 'https://image.tmdb.org/t/p/',
-        read_only  => 1,
-        list_owner => $owner->username,
-        title      => $owner->username . "'s list",
+    my @filter_names = $tag_filter ? @{ $tag_filter->{names} } : ();
+    my %active = map { lc($_) => 1 } @filter_names;
+    my @filter_tags = map {
+        +{
+            name       => $_->{name},
+            count      => $_->{count},
+            active     => $active{ lc $_->{name} },
+            filter_url => uri_for($list_path, {
+                tag => [ @filter_names, $_->{name} ],
+            }),
+        }
+    } $Tag->counts(schema, $owner->id, $viewer_level);
+
+    return template 'index', {
+        entries     => \@entries,
+        movies      => $movies,
+        posters     => $posters,
+        base_url    => 'https://image.tmdb.org/t/p/',
+        list_path   => $list_path,
+        tag_filter  => $tag_filter,
+        filter_tags => \@filter_tags,
+        %template_params,
     };
-};
+}
+
+# Only the owner gets to see each tag's visibility
+sub tag_for_template {
+    my ($tag, $viewer_level) = @_;
+    return {
+        name => $tag->name,
+        ($viewer_level eq 'private' ? (visibility => $tag->visibility) : ()),
+    };
+}
+
+# The ?tag= filter for the entry lists. Returns ($search, $filter): $search
+# is conditions for the entries search, $filter is for the template, with the
+# tag names, links that drop each one, and a link to clear them all.
+#
+# Tags the viewer can't see match nothing, same as tags that don't exist, so
+# the filter can't be used to find out the names of private tags.
+sub tag_filter {
+    my ($owner, $viewer_level, $list_path) = @_;
+
+    my (@names, %seen);
+    foreach my $raw (query_parameters->get_all('tag')) {
+        my ($name, $err) = $Tag->normalize_name($raw);
+        next if $err || $name eq '' || $seen{lc $name}++;
+        push @names, $name;
+    }
+    return {}, undef unless @names;
+
+    my (@conditions, $matches_nothing);
+    foreach my $name (@names) {
+        my $tag = $Tag->find_for_user(schema, $owner->id, $name);
+        if (!$tag || !$tag->seen_by($viewer_level)) {
+            $matches_nothing = 1;
+            last;
+        }
+        push @conditions, { 'me.id' => { -in =>
+            resultset('EntryTag')->search({ tag_id => $tag->id })
+                ->get_column('entry_id')->as_query
+        } };
+    }
+
+    my $filter = {
+        names     => \@names,
+        multiple  => @names > 1,
+        clear_url => uri_for($list_path),
+        tags      => [ map {
+            my $name = $_;
+            my @rest = grep { $_ ne $name } @names;
+            +{
+                name       => $name,
+                remove_url => @rest ? uri_for($list_path, { tag => \@rest })
+                                    : uri_for($list_path),
+            };
+        } @names ],
+    };
+    my $search = $matches_nothing ? { 'me.id' => undef } : { -and => \@conditions };
+    return $search, $filter;
+}
 
 # Returns hashrefs of entry id => kg::Tlociu::TMDB::Movie and entry id =>
 # poster path for the given entries.
@@ -159,6 +255,120 @@ sub load_movies {
         $movies{$entry->id} = $movie;
     }
     return \%movies, \%posters;
+}
+
+=head2 get /tags, post /tags/12345, post /tags/12345/delete
+
+Your tag cloud, plus a list of all your tags where you can rename them, set
+who can see each one, or delete them.
+
+=cut
+
+get '/tags' => requires_login sub {
+    my $current_user = var 'signed_in_as';
+
+    my @counts = $Tag->counts(schema, $current_user->id, 'private');
+    my %count_for = map { $_->{id} => $_->{count} } @counts;
+    my @tags = map {
+        +{
+            id         => $_->id,
+            name       => $_->name,
+            visibility => $_->visibility,
+            count      => $count_for{ $_->id } // 0,
+        }
+    } resultset('Tag')->search(
+        { user_id => $current_user->id },
+        { order_by => 'name_lc' },
+    )->all;
+
+    template 'tags', {
+        title        => 'Tags',
+        heading      => 'Your tags',
+        cloud        => tag_cloud('/', @counts),
+        manage_tags  => \@tags,
+        current_csrf => cookie(CSRFToken),
+    };
+};
+
+post '/tags/:id[Int]' => requires_login sub {
+    my $tag = own_tag(route_parameters->get('id'))
+        or return not_found_tag();
+    my $params = body_parameters();
+
+    my ($name, $err) = $Tag->normalize_name($params->{name});
+    $err ||= 'Tag names can\'t be empty' if $name eq '';
+    $err ||= 'Invalid visibility' unless $Entry->is_valid_visibility($params->{visibility});
+    if (!$err) {
+        my $other = $Tag->find_for_user(schema, $tag->user_id, $name);
+        $err = qq{You already have a tag called "} . $other->name . '"'
+            if $other && $other->id != $tag->id;
+    }
+    if ($err) {
+        var error_message => $err;
+        warning $err;
+        forward '/tags', {}, { method => 'GET' };
+    }
+
+    $tag->update({ name => $name, visibility => $params->{visibility} });
+    redirect uri_for '/tags';
+};
+
+post '/tags/:id[Int]/delete' => requires_login sub {
+    my $tag = own_tag(route_parameters->get('id'))
+        or return not_found_tag();
+    $tag->delete;
+    redirect uri_for '/tags';
+};
+
+=head2 get /users/:xid/tags
+
+Someone's tag cloud, with only the tags and entries you may see.
+
+=cut
+
+get '/users/:xid/tags' => sub {
+    my $owner = owner_from_xid(route_parameters->get('xid'));
+    if (!$owner) {
+        status 'not_found';
+        return "No list found at that address";
+    }
+    my $list_path = '/users/' . $owner->xid;
+    template 'tags', {
+        title    => $owner->username . "'s tags",
+        heading  => $owner->username . "'s tags",
+        cloud    => tag_cloud($list_path, $Tag->counts(schema, $owner->id, viewer_level($owner))),
+        list_url => uri_for($list_path),
+    };
+};
+
+sub own_tag {
+    my ($id) = @_;
+    return resultset('Tag')->search({
+        id      => $id,
+        user_id => (var 'signed_in_as')->id,
+    })->first;
+}
+
+sub not_found_tag {
+    status 'not_found';
+    return "No such tag";
+}
+
+# Adds a size from 1 to 5 to each of @counts (from $Tag->counts), on a log
+# scale so one huge tag doesn't make all the others tiny, and a link to the
+# list at $list_path filtered by that tag.
+# (CORE::log because Dancer2's log keyword is the logger.)
+sub tag_cloud {
+    my ($list_path, @counts) = @_;
+
+    my $max = max(1, map { $_->{count} } @counts);
+    return [ map {
+        +{
+            %$_,
+            size => $max == 1 ? 2 : 1 + int(4 * CORE::log($_->{count}) / CORE::log($max) + 0.5),
+            url  => uri_for($list_path, { tag => $_->{name} }),
+        }
+    } @counts ];
 }
 
 =head2 get /search-title
@@ -229,6 +439,8 @@ get '/entry/:id[Int]' => requires_login sub {
     template 'entry/index', {
        entry => $entry,
        movie => $movie,
+       tags  => [ map { tag_for_template($_, 'private') }
+           $entry->tags->search({}, { order_by => 'tag.name_lc' })->all ],
        # from /config "secure_base_url": "https://image.tmdb.org/t/p/",
        # "poster_sizes": [
        #    "w92",
@@ -286,6 +498,7 @@ get '/entry/create' => requires_login sub {
     template 'entry/create-update', {
        post_to => uri_for('/entry/create'),
        current_csrf => cookie(CSRFToken),
+       user_tags => user_tag_names(var 'signed_in_as'),
     };
 };
 
@@ -310,6 +523,12 @@ post '/entry/create' => requires_login sub {
     if (my $err = visibility_params_error($params)) {
         var error_message => $err;
         warning $err;
+        forward '/entry/create', $params, { method => 'GET' };
+    }
+    my ($tag_names, $tags_err) = $Tag->parse_names($params->{tags});
+    if ($tags_err) {
+        var error_message => $tags_err;
+        warning $tags_err;
         forward '/entry/create', $params, { method => 'GET' };
     }
 
@@ -342,7 +561,9 @@ post '/entry/create' => requires_login sub {
                 watchlist_notes_visibility => $params->{watchlist_notes_visibility} || undef,
                 watched_notes_visibility   => $params->{watched_notes_visibility} || undef,
             );
-            resultset('Entry')->create(\%create_params);
+            my $entry = resultset('Entry')->create(\%create_params);
+            $entry->set_tag_names($tag_names);
+            $entry;
         }
         # 5.40 try/catch catch( $e ) {
         catch {
@@ -380,6 +601,8 @@ get '/entry/:id/update' => requires_login sub {
         next unless $entry->$field;
         var $field => DateTime::Format::SQLite->format_date($entry->$field);
     }
+    var tags => join ', ', map { $_->name }
+        $entry->tags->search({}, { order_by => 'tag.name_lc' })->all;
     if (my $set_watched = query_parameters->get('set_watched')) {
         var changing_watched => $set_watched;
         if ($set_watched eq 'yes') {
@@ -391,6 +614,7 @@ get '/entry/:id/update' => requires_login sub {
     template 'entry/create-update', {
        post_to => uri_for("/entry/$id/update"),
        current_csrf => cookie(CSRFToken),
+       user_tags => user_tag_names($current_user),
     };
 };
 post '/entry/:id/update' => requires_login sub {
@@ -420,6 +644,12 @@ post '/entry/:id/update' => requires_login sub {
         warning $err;
         forward "/entry/$id/update", {}, { method => 'GET' };
     }
+    my ($tag_names, $tags_err) = $Tag->parse_names($params->{tags});
+    if ($tags_err) {
+        var error_message => $tags_err;
+        warning $tags_err;
+        forward "/entry/$id/update", {}, { method => 'GET' };
+    }
     try {
         $entry->update({
             title           => $params->{title},
@@ -432,6 +662,8 @@ post '/entry/:id/update' => requires_login sub {
             watchlist_notes_visibility => $params->{watchlist_notes_visibility} || undef,
             watched_notes_visibility   => $params->{watched_notes_visibility} || undef,
         });
+        # leave the tags alone if the form didn't have a tags field
+        $entry->set_tag_names($tag_names) if defined $params->{tags};
     }
     # 5.40 try/catch catch( $e ) {
     catch {
@@ -765,7 +997,6 @@ post '/apple-signin' => sub {
 # An empty notes visibility means "same as the entry".
 sub visibility_params_error {
     my ($params) = @_;
-    my $Entry = 'kg::Tlociu::Schema::Result::Entry';
 
     my @bad;
     push @bad, 'visibility'
@@ -776,6 +1007,15 @@ sub visibility_params_error {
         push @bad, $field unless $Entry->is_valid_visibility($value);
     }
     return @bad ? "Invalid visibility for: " . join ", ", @bad : '';
+}
+
+# All of $user's tag names, for the suggestions on the entry form
+sub user_tag_names {
+    my ($user) = @_;
+    return [ map { $_->name } resultset('Tag')->search(
+        { user_id => $user->id },
+        { order_by => 'name_lc' },
+    )->all ];
 }
 
 sub load_tmdb_apikey {

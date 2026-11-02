@@ -1,0 +1,55 @@
+<div id="tags-page">
+<h1 class="list-owner"><% heading | html %></h1>
+<% IF list_url %>
+<p class="list-owner-links"><a href="<% list_url | html %>">Back to the list</a></p>
+<% END %>
+
+<% IF vars.error_message %>
+    <div class="error">ERROR: <% vars.error_message | html %></div>
+<% END %>
+
+<% IF cloud.size %>
+<div class="tag-cloud">
+    <% FOREACH t IN cloud %>
+    <a class="tag-cloud-tag tag-size-<% t.size %>" href="<% t.url | html %>"
+       title="<% t.count %> <% t.count == 1 ? 'entry' : 'entries' %>"><% t.name | html %></a>
+    <% END %>
+</div>
+<% ELSIF !manage_tags.size %>
+<p>No tags yet.<% IF current_csrf %> Add some when you edit an entry.<% END %></p>
+<% END %>
+
+<% IF manage_tags.size %>
+<h2 class="tag-manage-heading">Rename, change who sees them, or delete</h2>
+<p class="field-hint">Tags only show on entries that the viewer can already see.</p>
+<div class="tag-manage">
+    <% FOREACH t IN manage_tags %>
+    <div class="tag-manage-row">
+        <form method="post" action="<% request.uri_for('/tags/' _ t.id) %>" class="tag-manage-form">
+            <input type="hidden" name="csrf_token" value="<% current_csrf | html %>">
+            <input type="text" name="name" value="<% t.name | html %>" aria-label="Tag name" required>
+            <select name="visibility" aria-label="Who can see the <% t.name | html %> tag">
+                <option value="private" <% t.visibility == 'private' ? 'selected' : '' %>>Only me</option>
+                <option value="users" <% t.visibility == 'users' ? 'selected' : '' %>>Signed-in tlociu users</option>
+                <option value="public" <% t.visibility == 'public' ? 'selected' : '' %>>Public</option>
+            </select>
+            <span class="tag-count"><% t.count %> <% t.count == 1 ? 'entry' : 'entries' %></span>
+            <button type="submit">Save</button>
+        </form>
+        <form method="post" action="<% request.uri_for('/tags/' _ t.id _ '/delete') %>" class="tag-delete-form"
+              data-confirm="Delete the tag &quot;<% t.name | html %>&quot;? It will be removed from <% t.count %> <% t.count == 1 ? 'entry' : 'entries' %>.">
+            <input type="hidden" name="csrf_token" value="<% current_csrf | html %>">
+            <button type="submit" class="danger">Delete</button>
+        </form>
+    </div>
+    <% END %>
+</div>
+<script>
+document.querySelectorAll('.tag-delete-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+        if (!confirm(form.dataset.confirm)) event.preventDefault();
+    });
+});
+</script>
+<% END %>
+</div>

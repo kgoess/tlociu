@@ -62,6 +62,52 @@
             <label for="date_watched">Date Watched</label>
             <input type="date" name="date_watched" id="date_watched" value="<% vars.date_watched| html %>">
         </div>
+        <div class="field">
+            <label for="tags">Tags</label>
+            <input type="text" name="tags" id="tags" value="<% vars.tags | html %>" autocomplete="off"
+                   placeholder="e.g. horror, light entertainment">
+            <p class="field-hint">Separate tags with commas. New tags start out private; you can
+            change who sees each tag on the <a href="<% request.uri_for('/tags') %>">Tags</a> page.</p>
+            <% IF user_tags.size %>
+            <div class="tag-suggestions">
+                <% FOREACH name IN user_tags %>
+                <button type="button" class="tag tag-suggestion" data-tag="<% name | html %>"><% name | html %></button>
+                <% END %>
+            </div>
+            <script>
+            (function () {
+                var input = document.getElementById('tags');
+                var buttons = document.querySelectorAll('.tag-suggestion');
+
+                function currentTags() {
+                    return input.value.split(',')
+                        .map(function (t) { return t.trim(); })
+                        .filter(function (t) { return t !== ''; });
+                }
+                function hasTag(name) {
+                    return currentTags().some(function (t) { return t.toLowerCase() === name.toLowerCase(); });
+                }
+                function markUsed() {
+                    buttons.forEach(function (b) { b.classList.toggle('tag-active', hasTag(b.dataset.tag)); });
+                }
+
+                // click a suggestion to add it, click again to take it back out
+                buttons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        var name = button.dataset.tag;
+                        var tags = hasTag(name)
+                            ? currentTags().filter(function (t) { return t.toLowerCase() !== name.toLowerCase(); })
+                            : currentTags().concat([name]);
+                        input.value = tags.join(', ');
+                        markUsed();
+                    });
+                });
+                input.addEventListener('input', markUsed);
+                markUsed();
+            })();
+            </script>
+            <% END %>
+        </div>
         <div class="field inline">
             <div class="field-legend">Visibility</div>
             <% SET visibility = vars.visibility || 'users' %>
