@@ -9,7 +9,8 @@ logger: "console"
 # the log level for this environment
 # core is the lowest, it shows Dancer2's core log messages as well as yours
 # (debug, info, warning and error)
-log: "core"
+# see also tmdb_debug below
+log: "debug"
 
 # should Dancer2 show a stacktrace when an 5xx error is caught?
 # if set to yes, public/500.html will be ignored and either
@@ -42,7 +43,9 @@ strict_config_allow:
     - apple_oauth_keys_cache_dir
 
 tmdb_apikey: ~/.tmdb
-tmdb_debug: 1
+# tmdb_debug spews HTTP debug for you
+# see also log: "debug" setting above
+#tmdb_debug: 1
 
 strict_utf8: 1
 
