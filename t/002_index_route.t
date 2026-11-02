@@ -1,16 +1,22 @@
 use strict;
 use warnings;
 
-use kg::Tlociu;
-use Test::More tests => 2;
-use Plack::Test;
+use FindBin qw/$Bin/;
+use lib "$Bin/lib";
+
 use HTTP::Request::Common;
-use Ref::Util qw<is_coderef>;
+use Test::More tests => 4;
 
-my $app = kg::Tlociu->to_app;
-ok( is_coderef($app), 'Got app' );
+use TestHelper;
 
-my $test = Plack::Test->create($app);
-my $res  = $test->request( GET '/' );
+my $t = TestHelper->new;
 
-ok( $res->is_success, '[GET /] successful' );
+my $res = $t->request(GET '/');
+ok $res->is_redirect, '[GET /] redirects when signed out';
+like $res->header('Location'), qr{/signin$}, '...to /signin';
+
+$t->sign_in_as($t->create_user);
+
+$res = $t->request(GET '/');
+ok $res->is_success, '[GET /] successful when signed in' or diag $res->status_line;
+like $res->content, qr/<html/i, '...and returns a page';
