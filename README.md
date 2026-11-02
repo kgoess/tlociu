@@ -94,5 +94,6 @@ and run this to update the files in lib/kg/Tlociu/Schema/:
         -o components='["InflateColumn::DateTime"]' \
         -o datetime_undef_if_invalid=1 \
         -o moniker_map='{ movies => "Movie" }' \
+        -o skip_load_external=1 \
         kg::Tlociu::Schema dbi:SQLite:db/tlociu.sqlite '{ quote_char => "\"" }'
 
