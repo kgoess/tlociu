@@ -56,6 +56,7 @@ use Switch::Plain qw/sswitch/;
 use kg::Tlociu::FederatedAuth;
 use kg::Tlociu::Plugin::Auth; # implements requires_login
 use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken CSRFToken AppleToken/;
+use kg::Tlociu::Schema::Result::Entry; # for is_valid_visibility
 use kg::Tlociu::TMDB;
 
 our $VERSION = '0.1';
@@ -235,6 +236,11 @@ post '/entry/create' => requires_login sub {
         warning $err;
         forward '/entry/create', $params, { method => 'GET' };
     }
+    if (my $err = visibility_params_error($params)) {
+        var error_message => $err;
+        warning $err;
+        forward '/entry/create', $params, { method => 'GET' };
+    }
 
     my $current_user = var 'signed_in_as';
     my @existing = resultset('Entry')->search({
@@ -261,7 +267,9 @@ post '/entry/create' => requires_login sub {
                 date_watched    => $params->get('date_watched') || undef,
                 watched         => $params->{watched},
                 watched_notes   => $params->get('watched_notes'),
-                is_public       => $params->{is_public},
+                visibility      => $params->{visibility},
+                watchlist_notes_visibility => $params->{watchlist_notes_visibility} || undef,
+                watched_notes_visibility   => $params->{watched_notes_visibility} || undef,
             );
             resultset('Entry')->create(\%create_params);
         }
@@ -293,7 +301,10 @@ get '/entry/:id/update' => requires_login sub {
         status 'not_found';
         return "Attempt to load non-existent entry $id";
     }
-    var $_ => $entry->$_ foreach qw< title tmdb_id watched watchlist_notes watched_notes is_public >;
+    var $_ => $entry->$_ foreach qw<
+        title tmdb_id watched watchlist_notes watched_notes
+        visibility watchlist_notes_visibility watched_notes_visibility
+    >;
     foreach my $field (qw< date_added date_watched >) {
         next unless $entry->$field;
         var $field => DateTime::Format::SQLite->format_date($entry->$field);
@@ -323,11 +334,19 @@ post '/entry/:id/update' => requires_login sub {
         return "Attempt to update non-existent entry $id";
     }
     my $params = body_parameters();
-    var $_ => $params->{ $_ } foreach qw< title watchlist_notes date_added watched_notes date_watched is_public >;
+    var $_ => $params->{ $_ } foreach qw<
+        title watchlist_notes date_added watched_notes date_watched
+        visibility watchlist_notes_visibility watched_notes_visibility
+    >;
     my @missing = grep { $params->{$_} eq '' } qw< title >;
     if( @missing ) {
         var missing => join ",", @missing;
         warning "Missing parameters: " . var 'missing';
+        forward "/entry/$id/update", {}, { method => 'GET' };
+    }
+    if (my $err = visibility_params_error($params)) {
+        var error_message => $err;
+        warning $err;
         forward "/entry/$id/update", {}, { method => 'GET' };
     }
     try {
@@ -338,7 +357,9 @@ post '/entry/:id/update' => requires_login sub {
             date_watched    => $params->{date_watched} || undef,
             watched         => $params->{watched},
             watched_notes   => $params->{watched_notes},
-            is_public       => $params->{is_public},
+            visibility      => $params->{visibility},
+            watchlist_notes_visibility => $params->{watchlist_notes_visibility} || undef,
+            watched_notes_visibility   => $params->{watched_notes_visibility} || undef,
         });
     }
     # 5.40 try/catch catch( $e ) {
@@ -668,6 +689,23 @@ post '/apple-signin' => sub {
     cookie LoginMethod, 'apple',  expires => "72 hours";
     redirect '/' => 303;
 };
+
+# Checks the visibility form params, returns an error message if any are bad.
+# An empty notes visibility means "same as the entry".
+sub visibility_params_error {
+    my ($params) = @_;
+    my $Entry = 'kg::Tlociu::Schema::Result::Entry';
+
+    my @bad;
+    push @bad, 'visibility'
+        unless $Entry->is_valid_visibility($params->{visibility});
+    foreach my $field (qw< watchlist_notes_visibility watched_notes_visibility >) {
+        my $value = $params->{$field};
+        next if !defined $value || $value eq '';
+        push @bad, $field unless $Entry->is_valid_visibility($value);
+    }
+    return @bad ? "Invalid visibility for: " . join ", ", @bad : '';
+}
 
 sub load_tmdb_apikey {
     my $apikey_path = config->{tmdb_apikey}

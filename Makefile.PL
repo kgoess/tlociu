@@ -35,6 +35,7 @@ WriteMakefile(
         'Moo' => 0,
         'Switch::Plain' => 0,
         'SQL::Translator' => '1.66',
+        'Text::Unidecode' => 0,
         'WWW::Form::UrlEncoded' => '0.26',
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
