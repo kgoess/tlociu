@@ -469,9 +469,20 @@ textarea {
     color: var(--text);
 }
 
+select {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.9rem;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
 input[type="text"]:focus,
 input[type="date"]:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
     outline: 2px solid var(--accent);
     outline-offset: -1px;
     border-color: var(--accent);

@@ -20,7 +20,7 @@ my $test = Plack::Test->create($app);
 
 my $res;
 
-my $post_content = q{title=L%27%C3%82ge+b%C3%AAte&tmdb_id=838844&watchlist_notes=testing+utf8&date_added=2026-07-09&watched=0&watched_notes=&date_watched=&is_public=0};
+my $post_content = q{title=L%27%C3%82ge+b%C3%AAte&tmdb_id=838844&watchlist_notes=testing+utf8&date_added=2026-07-09&watched=0&watched_notes=&date_watched=&visibility=private};
 $res  = $test->request(POST '/entry/create', Content => $post_content);
 ok $res->is_redirect, '[POST /] successful' or do {
     say STDERR $res->content;

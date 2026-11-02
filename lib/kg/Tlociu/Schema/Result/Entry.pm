@@ -67,6 +67,11 @@ __PACKAGE__->table("entries");
   data_type: 'text'
   is_nullable: 1
 
+=head2 watchlist_notes_visibility
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 date_added
 
   data_type: 'timestamp'
@@ -84,6 +89,11 @@ __PACKAGE__->table("entries");
   data_type: 'text'
   is_nullable: 1
 
+=head2 watched_notes_visibility
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 date_watched
 
   data_type: 'timestamp'
@@ -95,10 +105,10 @@ __PACKAGE__->table("entries");
   default_value: 0
   is_nullable: 0
 
-=head2 is_public
+=head2 visibility
 
-  data_type: 'integer'
-  default_value: 0
+  data_type: 'text'
+  default_value: 'private'
   is_nullable: 0
 
 =head2 created_at
@@ -122,6 +132,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "watchlist_notes",
   { data_type => "text", is_nullable => 1 },
+  "watchlist_notes_visibility",
+  { data_type => "text", is_nullable => 1 },
   "date_added",
   {
     data_type     => "timestamp",
@@ -132,12 +144,14 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => 0, is_nullable => 0 },
   "watched_notes",
   { data_type => "text", is_nullable => 1 },
+  "watched_notes_visibility",
+  { data_type => "text", is_nullable => 1 },
   "date_watched",
   { data_type => "timestamp", is_nullable => 1 },
   "is_deleted",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
-  "is_public",
-  { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "visibility",
+  { data_type => "text", default_value => "private", is_nullable => 0 },
   "created_at",
   {
     data_type     => "timestamp",
@@ -192,8 +206,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-04 22:15:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k/Y4WgI11VReWHVXFUzBcw
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-11-02 02:42:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+Lot3Gi3lVeBx87nZUvYWg
 
 use Encode qw/is_utf8 encode_utf8 decode_utf8/;
 
@@ -219,6 +233,30 @@ sub update {
     }
 
     return $self->next::method(@_);
+}
+
+# Visibility levels, least to most visible. 'users' means other people signed
+# in to tlociu.
+my %VISIBILITY_RANK = (private => 0, users => 1, public => 2);
+
+sub is_valid_visibility {
+    my ($class, $visibility) = @_;
+    return defined $visibility && exists $VISIBILITY_RANK{$visibility};
+}
+
+# Who can see the notes in $notes_col ('watchlist_notes' or 'watched_notes').
+# A NULL ${notes_col}_visibility means "same as the entry", and notes are
+# never more visible than the entry they're on.
+sub notes_visibility {
+    my ($self, $notes_col) = @_;
+
+    my $visibility_col = "${notes_col}_visibility";
+    my $entry_visibility = $self->visibility;
+    my $notes_visibility = $self->$visibility_col // return $entry_visibility;
+
+    return $VISIBILITY_RANK{$notes_visibility} < $VISIBILITY_RANK{$entry_visibility}
+        ? $notes_visibility
+        : $entry_visibility;
 }
 
 foreach my $colname (qw/title title_lc watchlist_notes watched_notes/) {
