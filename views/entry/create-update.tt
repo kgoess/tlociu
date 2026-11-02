@@ -64,7 +64,7 @@
         </div>
         <div class="field inline">
             <div class="field-legend">Visibility</div>
-            <% SET visibility = vars.visibility || 'private' %>
+            <% SET visibility = vars.visibility || 'users' %>
             <input type="radio" name="visibility" id="visibility-public" value="public" <% visibility == 'public' ? 'checked' : '' %>>
             <label for="visibility-public">Public</label>
             &nbsp;
