@@ -1,3 +1,25 @@
+<% IF read_only %>
+<h1 class="list-owner"><% list_owner | html %>'s list</h1>
+<% ELSIF share_url %>
+<div class="share-list">
+    <label for="share-url">Share my list</label>
+    <input type="text" id="share-url" value="<% share_url | html %>" readonly>
+    <button type="button" id="share-copy">Copy</button>
+    <p class="share-hint">People with this link see your public entries, plus your
+    "Signed-in tlociu users" entries if they're signed in.</p>
+</div>
+<script>
+document.getElementById('share-copy').addEventListener('click', function () {
+    var input = document.getElementById('share-url');
+    var button = this;
+    input.select();
+    navigator.clipboard.writeText(input.value).then(function () {
+        button.textContent = 'Copied!';
+        setTimeout(function () { button.textContent = 'Copy'; }, 2000);
+    });
+});
+</script>
+<% END %>
 <div class="list-controls">
     <button id="list-controls-toggle" aria-expanded="false" aria-controls="list-controls-panel">
         <span id="list-controls-summary">Sort &amp; filter</span>
@@ -41,11 +63,17 @@
             >
             <div class="entry-card-thumb-column">
                 <% IF posters.item(entry.id) %>
+                <% IF read_only %>
+                    <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
+                <% ELSE %>
                 <a class="thumb-link" href="<% request.uri_for('/entry/' _ entry.id) %>">
                     <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
                 </a>
                 <% END %>
-                <% IF entry.watched %>
+                <% END %>
+                <% IF read_only %>
+                <div class="watch-status"<% IF !entry.watched %> title="Want to watch"<% END %>><% entry.watched ? '&#10003; Watched' : '👀' %></div>
+                <% ELSIF entry.watched %>
                 <div class="watch-status"><a href="<% request.uri_for('/entry/' _ entry.id _ '/update', { set_watched => 'no' }) %>">&#10003; Watched</a></div>
                 <% ELSE %>
                 <div class="watch-status" title="Want to watch"><a href="<% request.uri_for('/entry/' _ entry.id _ '/update', { set_watched => 'yes' }) %>">👀</a></div>
@@ -54,7 +82,11 @@
             <div class="entry-card-body">
                 <div class="entry-card-body-header">
                     <div>
+                        <% IF read_only %>
+                        <h2 class="entry-title"><% entry.title | html %></h2>
+                        <% ELSE %>
                         <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html %></a></h2>
+                        <% END %>
                         <p class="entry-meta"><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name _ ' · ' _  movie.info.runtime | html %>&nbsp;minutes</p>
                         <p class="entry-meta"><% movie.director.join(', ') %>, director</p>
                         <p class="entry-meta">Added <% entry.date_added.ymd | html %></p>
@@ -75,6 +107,8 @@
         </li>
     <% END %>
     </ul>
+<% ELSIF read_only %>
+    <p>Nothing to see here yet.
 <% ELSE %>
     <p>No entries found.
     <!-- if we implement search filters then we'll need to conditionalize this next line -->

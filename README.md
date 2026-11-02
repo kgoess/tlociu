@@ -85,6 +85,16 @@ Or for localhost:
 
 
 
+## Adding users
+
+Signing in looks users up by email, so add a row for each person first. The
+email has to match their Google/Apple sign-in. This also gives them the random
+xid for their shareable /users/:xid page:
+
+    bin/tlociu-create-user.pl --env development --username alice --email alice@example.com
+
+See `bin/tlociu-create-user.pl --help` for the other fields.
+
 ## Making changes to the db tables.
 
 The dev db is pointed to from environment/development.yml, is db/tlociu.sqlite. Make your changes to that db

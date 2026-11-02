@@ -91,6 +91,53 @@ h3 { font-size: 1rem; }
 }
 
 
+/* Share my list, and the heading on someone's shared list */
+
+.share-list {
+    margin: 1.5rem 0 0;
+}
+
+.share-list label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+#share-url {
+    width: 100%;
+    max-width: 24rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.85rem;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+#share-copy {
+    padding: 0.35rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--accent);
+    color: white;
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.share-hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.list-owner {
+    margin: 1.5rem 0 0;
+    font-size: 1.4rem;
+}
+
 /* Entry list controls (sort + filter) */
 
 .list-controls {

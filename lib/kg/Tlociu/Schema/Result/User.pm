@@ -63,6 +63,11 @@ __PACKAGE__->table("users");
   default_value: 0
   is_nullable: 0
 
+=head2 xid
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -80,6 +85,8 @@ __PACKAGE__->add_columns(
   },
   "is_deleted",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "xid",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -120,6 +127,18 @@ __PACKAGE__->add_unique_constraint("email_unique", ["email"]);
 
 __PACKAGE__->add_unique_constraint("username_unique", ["username"]);
 
+=head2 C<xid_unique>
+
+=over 4
+
+=item * L</xid>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("xid_unique", ["xid"]);
+
 =head1 RELATIONS
 
 =head2 entries
@@ -138,9 +157,19 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-07-04 18:15:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EKOJA8qL8DU1q+6CztcEuQ
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-11-02 04:02:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W01cbmARl+Ua78yzHmQPWA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+use kg::Tlociu::Util::Xid qw/new_xid/;
+
+# Every user gets a random public id for their /users/:xid page
+sub insert {
+    my $self = shift;
+
+    $self->xid( new_xid() ) unless defined $self->xid;
+
+    return $self->next::method(@_);
+}
+
 1;

@@ -56,6 +56,7 @@ use Switch::Plain qw/sswitch/;
 use kg::Tlociu::FederatedAuth;
 use kg::Tlociu::Plugin::Auth; # implements requires_login
 use kg::Tlociu::Util::Cookie qw/LoginMethod LoginSession GoogleToken CSRFToken AppleToken/;
+use kg::Tlociu::Util::Xid qw/is_xid/;
 use kg::Tlociu::Schema::Result::Entry; # for is_valid_visibility
 use kg::Tlociu::TMDB;
 
@@ -77,21 +78,88 @@ get '/' => requires_login sub {
         { user_id => $current_user->id },
         { order_by => [ qw/watched title/ ] },
     )->all;
-    my (%posters, %movies);
-    foreach my $entry (@entries) {
+    my ($movies, $posters) = load_movies(\@entries);
+    template 'index', {
+        entries    => \@entries,
+        movies     => $movies,
+        posters    => $posters,
+        base_url   => 'https://image.tmdb.org/t/p/',
+        share_url  => $current_user->xid && uri_for('/users/' . $current_user->xid),
+    };
+};
+
+=head2 get /users/:xid
+
+A user's list as the viewer is allowed to see it: their public entries for
+anybody, plus their 'users' entries if you're signed in, or everything if it's
+your own list. This is the link from "Share my list". Doesn't require login.
+
+=cut
+
+get '/users/:xid' => sub {
+    my $xid = route_parameters->get('xid');
+    my $owner = is_xid($xid) && resultset('User')->search({
+        xid        => $xid,
+        is_deleted => 0,
+    })->first;
+    if (!$owner) {
+        status 'not_found';
+        return "No list found at that address";
+    }
+
+    my $viewer = var 'signed_in_as';
+    my $viewer_level = !$viewer                  ? 'public'
+                     : $viewer->id == $owner->id ? 'private'
+                     :                             'users';
+
+    my $Entry = 'kg::Tlociu::Schema::Result::Entry';
+    my @rows = resultset('Entry')->search(
+        {
+            user_id    => $owner->id,
+            is_deleted => 0,
+            visibility => { -in => $Entry->visibilities_seen_by($viewer_level) },
+        },
+        { order_by => [ qw/watched title/ ] },
+    )->all;
+    my ($movies, $posters) = load_movies(\@rows);
+
+    # Only hand the template what this viewer may see, so a template change
+    # can't leak notes they shouldn't see.
+    my @entries = map {
+        my $row = $_;
+        +{
+            (map { $_ => $row->$_ } qw< id title watched date_added date_watched >),
+            (map { $_ => $row->notes_seen_by($_, $viewer_level) ? $row->$_ : undef }
+                qw< watchlist_notes watched_notes >),
+        };
+    } @rows;
+
+    template 'index', {
+        entries    => \@entries,
+        movies     => $movies,
+        posters    => $posters,
+        base_url   => 'https://image.tmdb.org/t/p/',
+        read_only  => 1,
+        list_owner => $owner->username,
+        title      => $owner->username . "'s list",
+    };
+};
+
+# Returns hashrefs of entry id => kg::Tlociu::TMDB::Movie and entry id =>
+# poster path for the given entries.
+sub load_movies {
+    my ($entries) = @_;
+
+    my (%movies, %posters);
+    foreach my $entry (@$entries) {
         # TODO might be faster/easier to store the poster in the entries table
         my $movie = $TMDB->movie(id => $entry->tmdb_id);
         $movie->init_from_db(resultset('Movie'));
         $posters{$entry->id} = $movie->poster;
         $movies{$entry->id} = $movie;
     }
-    template 'index', {
-        entries    => \@entries,
-        movies     => \%movies,
-        posters    => \%posters,
-        base_url   => 'https://image.tmdb.org/t/p/',
-    };
-};
+    return \%movies, \%posters;
+}
 
 =head2 get /search-title
 
