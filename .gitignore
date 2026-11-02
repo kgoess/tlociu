@@ -5,3 +5,4 @@ db/tlociu.sqlite
 MYMETA.json
 MYMETA.yml
 Makefile
+.DS_Store
