@@ -280,6 +280,9 @@ get '/entry/create' => requires_login sub {
     }
 
     var date_added => DateTime->now(time_zone => 'floating')->ymd('-');
+    # New entries' notes start out private. Only here, not in the template,
+    # because an empty value means "same as entry" on existing entries.
+    var $_ => 'private' foreach qw< watchlist_notes_visibility watched_notes_visibility >;
     template 'entry/create-update', {
        post_to => uri_for('/entry/create'),
        current_csrf => cookie(CSRFToken),
