@@ -1,5 +1,15 @@
 <% IF read_only %>
 <h1 class="list-owner"><% list_owner | html %>'s list</h1>
+<% IF filter_tags.size %><p class="list-owner-links"><a href="<% tags_url %>">Tags</a></p><% END %>
+<% END %>
+<% IF tag_filter %>
+<div class="tag-filter">
+    Tagged
+    <% FOREACH t IN tag_filter.tags %>
+    <span class="tag tag-active"><% t.name | html %><a class="tag-remove" href="<% t.remove_url | html %>" title="Stop filtering by <% t.name | html %>" aria-label="Stop filtering by <% t.name | html %>">&times;</a></span>
+    <% END %>
+    <% IF tag_filter.multiple %><a class="tag-filter-clear" href="<% tag_filter.clear_url | html %>">clear</a><% END %>
+</div>
 <% END %>
 <div class="list-controls">
     <% IF share_url && !read_only %>
@@ -70,6 +80,18 @@
         <button class="filter-button" data-filter="unwatched">To watch</button>
         <button class="filter-button" data-filter="watched">Watched</button>
     </div>
+    <% IF filter_tags.size %>
+    <div class="control-group">
+        <span class="control-label">Tags</span>
+        <% FOREACH t IN filter_tags %>
+        <% IF t.active %>
+        <span class="tag tag-active"><% t.name | html %> <span class="tag-count"><% t.count %></span></span>
+        <% ELSE %>
+        <a class="tag" href="<% t.filter_url | html %>"><% t.name | html %> <span class="tag-count"><% t.count %></span></a>
+        <% END %>
+        <% END %>
+    </div>
+    <% END %>
     <p class="sort-hint">Click a sort to cycle up &#8593; / down &#8595; / off; add more sorts to
     order within groups, e.g. Language then Year.</p>
     </div>
@@ -120,6 +142,13 @@
                         <p class="entry-meta">Added <% entry.date_added.ymd | html %></p>
                     </div>
                 </div>
+                <% IF entry.tags.size %>
+                <ul class="entry-tags">
+                    <% FOREACH t IN entry.tags %>
+                    <li><a class="tag<% IF t.visibility == 'private' %> tag-private<% END %>" href="<% request.uri_for(list_path, { tag => t.name }) %>"<% IF t.visibility == 'private' %> title="Only you can see this tag"<% END %>><% t.name | html %></a></li>
+                    <% END %>
+                </ul>
+                <% END %>
                 <% IF entry.watchlist_notes %>
                 <p class="entry-notes expandable-text clamped markdown"><% entry.watchlist_notes | html %></p>
                 <% END %>
@@ -135,6 +164,9 @@
         </li>
     <% END %>
     </ul>
+<% ELSIF tag_filter %>
+    <p>No entries with <% tag_filter.multiple ? 'all of those tags' : 'that tag' %>.
+    <a href="<% tag_filter.clear_url | html %>">Show everything</a>
 <% ELSIF read_only %>
     <p>Nothing to see here yet.
 <% ELSE %>

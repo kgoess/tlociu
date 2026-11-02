@@ -18,6 +18,7 @@
             <div class="nav-part">
                 <a href="<% request.uri_for('/') %>">All Entries</a>
                 <a href="<% request.uri_for('/entry/create-search') %>">New Entry</a>
+                <a href="<% request.uri_for('/tags') %>">Tags</a>
             </div>
             <div class="nav-part">
                 <a href="<% request.uri_for('/signout') %>">logout <% vars.signed_in_as.username | html %></a>

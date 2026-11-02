@@ -34,7 +34,6 @@ screenshots of it in action.
 - see the FIXMEs in style.css change those random colors to use var()s
 - make date_added include timestamp so sorting for multiple entries in the same day works
 - add unit tests, any tests
-- add tags
 - add other fields: DP, Cinematographer,...?
 - add sorting--Actor, Director, Writer, DP, Cinematographer...
 - add a "Surprise me!" button, to just pick one, maybe with parameters

@@ -190,6 +190,21 @@ __PACKAGE__->add_unique_constraint("user_id_tmdb_id_unique", ["user_id", "tmdb_i
 
 =head1 RELATIONS
 
+=head2 entry_tags
+
+Type: has_many
+
+Related object: L<kg::Tlociu::Schema::Result::EntryTag>
+
+=cut
+
+__PACKAGE__->has_many(
+  "entry_tags",
+  "kg::Tlociu::Schema::Result::EntryTag",
+  { "foreign.entry_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 user
 
 Type: belongs_to
@@ -205,9 +220,19 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head2 tags
 
-# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-11-02 02:42:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+Lot3Gi3lVeBx87nZUvYWg
+Type: many_to_many
+
+Composing rels: L</entry_tags> -> tag
+
+=cut
+
+__PACKAGE__->many_to_many("tags", "entry_tags", "tag");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-11-02 06:04:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lhEH9KLb5f24YWr3DgmXbA
 
 use Encode qw/is_utf8 encode_utf8 decode_utf8/;
 
@@ -275,6 +300,34 @@ sub notes_seen_by {
     my $min_rank = $VISIBILITY_RANK{$viewer_level}
         // die "unknown viewer level '$viewer_level'";
     return $VISIBILITY_RANK{ $self->notes_visibility($notes_col) } >= $min_rank;
+}
+
+# entry_tags has ON DELETE CASCADE, but foreign keys are only enforced where
+# the connection turns on PRAGMA foreign_keys, so don't count on it
+sub delete {
+    my $self = shift;
+    $self->entry_tags->delete;
+    return $self->next::method(@_);
+}
+
+# Replaces this entry's tags with the tags named in @$names, creating any of
+# the owner's tags that don't exist yet.
+sub set_tag_names {
+    my ($self, $names) = @_;
+
+    my $schema = $self->result_source->schema;
+    my $Tag = 'kg::Tlociu::Schema::Result::Tag';
+    $schema->txn_do(sub {
+        my @tag_ids = map {
+            $Tag->find_or_create_for_user($schema, $self->user_id, $_)->id
+        } @$names;
+
+        $self->entry_tags->search({ tag_id => { -not_in => \@tag_ids } })->delete;
+        my %have = map { $_ => 1 } $self->entry_tags->get_column('tag_id')->all;
+        foreach my $tag_id (grep { !$have{$_} } @tag_ids) {
+            $self->create_related(entry_tags => { tag_id => $tag_id });
+        }
+    });
 }
 
 foreach my $colname (qw/title title_lc watchlist_notes watched_notes/) {

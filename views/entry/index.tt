@@ -50,6 +50,14 @@
                 <% END %>
             <% END %>
 
+            <% IF tags.size %>
+            <ul class="entry-tags">
+                <% FOREACH t IN tags %>
+                <li><a class="tag<% IF t.visibility == 'private' %> tag-private<% END %>" href="<% request.uri_for('/', { tag => t.name }) %>"<% IF t.visibility == 'private' %> title="Only you can see this tag"<% END %>><% t.name | html %></a></li>
+                <% END %>
+            </ul>
+            <% END %>
+
             <p><% IF trailer %><a class="button" href="<% trailer %>" target="_blank">▶ Play Trailer</a><% ELSE %><span class="deemphasized-text">(No trailer available)</span><% END %></p>
 
             <p class="expandable-text clamped"><% movie.overview %></p>
