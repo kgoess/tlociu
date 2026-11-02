@@ -259,6 +259,24 @@ sub notes_visibility {
         : $entry_visibility;
 }
 
+# A viewer's level is 'private' for the entry's owner (sees everything),
+# 'users' for anybody else signed in, and 'public' for everybody else.
+# These return what a viewer at that level is allowed to see.
+
+sub visibilities_seen_by {
+    my ($class, $viewer_level) = @_;
+    my $min_rank = $VISIBILITY_RANK{$viewer_level}
+        // die "unknown viewer level '$viewer_level'";
+    return [ grep { $VISIBILITY_RANK{$_} >= $min_rank } sort keys %VISIBILITY_RANK ];
+}
+
+sub notes_seen_by {
+    my ($self, $notes_col, $viewer_level) = @_;
+    my $min_rank = $VISIBILITY_RANK{$viewer_level}
+        // die "unknown viewer level '$viewer_level'";
+    return $VISIBILITY_RANK{ $self->notes_visibility($notes_col) } >= $min_rank;
+}
+
 foreach my $colname (qw/title title_lc watchlist_notes watched_notes/) {
     __PACKAGE__->inflate_column($colname, {
         inflate => sub { my $s = shift; is_utf8($s) ? $s : decode_utf8($s) },

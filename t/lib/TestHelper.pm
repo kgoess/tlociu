@@ -36,6 +36,7 @@ BEGIN { $ENV{DANCER_ENVIRONMENT} = 'unittest' };
 use Crypt::URandom qw/urandom/;
 use Digest::SHA qw/hmac_sha256_hex/;
 use HTTP::Request::Common qw/POST/;
+use JSON::MaybeXS qw/encode_json/;
 use Plack::Test;
 
 use kg::Tlociu;
@@ -87,6 +88,43 @@ sub create_user {
         username => "testuser$n",
         email    => "testuser$n\@example.com",
         %args,
+    });
+}
+
+# Puts a movie in the movies table so the app finds it there instead of
+# calling the TMDB API.
+sub create_movie {
+    my ($self, $tmdb_id, $title) = @_;
+
+    return $self->schema->resultset('Movie')->find_or_create({
+        tmdb_id    => $tmdb_id,
+        title      => $title,
+        info       => encode_json({
+            id                => $tmdb_id,
+            title             => $title,
+            release_date      => '1980-01-30',
+            origin_country    => ['FR'],
+            original_language => 'fr',
+            runtime           => 90,
+            poster_path       => "/poster$tmdb_id.jpg",
+        }),
+        movie_cast => encode_json({
+            cast => [],
+            crew => [ { name => 'Jane Director', job => 'Director' } ],
+        }),
+        trailers   => encode_json({ youtube => [], quicktime => [] }),
+    });
+}
+
+# Creates an entry for $user, and its movie. $fields has at least title and
+# tmdb_id.
+sub create_entry {
+    my ($self, $user, %fields) = @_;
+
+    $self->create_movie($fields{tmdb_id}, $fields{title});
+    return $self->schema->resultset('Entry')->create({
+        user_id => $user->id,
+        %fields,
     });
 }
 

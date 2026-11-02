@@ -1,4 +1,54 @@
+<% IF read_only %>
+<h1 class="list-owner"><% list_owner | html %>'s list</h1>
+<% END %>
 <div class="list-controls">
+    <% IF share_url && !read_only %>
+    <div class="share-menu">
+        <button type="button" id="share-toggle" popovertarget="share-list"
+                aria-label="Share my list" title="Share my list">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2"/>
+                <path d="M12 15V3"/>
+                <path d="M8 7l4-4 4 4"/>
+            </svg>
+        </button>
+        <div id="share-list" class="share-list" popover>
+            <label for="share-url">Share my list</label>
+            <div class="share-url-row">
+                <input type="text" id="share-url" value="<% share_url | html %>" readonly>
+                <button type="button" id="share-copy">Copy</button>
+            </div>
+            <p class="share-hint">People with this link see your public entries, plus your
+            "Signed-in tlociu users" entries if they're signed in.</p>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var toggle = document.getElementById('share-toggle');
+        var popup = document.getElementById('share-list');
+        var input = document.getElementById('share-url');
+        var copy = document.getElementById('share-copy');
+
+        // the popup lives in the top layer, so line it up under the icon
+        popup.addEventListener('toggle', function (event) {
+            if (event.newState !== 'open') return;
+            var rect = toggle.getBoundingClientRect();
+            popup.style.top = (rect.bottom + 6) + 'px';
+            popup.style.right = Math.max(16, document.documentElement.clientWidth - rect.right) + 'px';
+            input.select();
+        });
+
+        copy.addEventListener('click', function () {
+            input.select();
+            navigator.clipboard.writeText(input.value).then(function () {
+                copy.textContent = 'Copied!';
+                setTimeout(function () { copy.textContent = 'Copy'; }, 2000);
+            });
+        });
+    })();
+    </script>
+    <% END %>
     <button id="list-controls-toggle" aria-expanded="false" aria-controls="list-controls-panel">
         <span id="list-controls-summary">Sort &amp; filter</span>
     </button>
@@ -41,11 +91,17 @@
             >
             <div class="entry-card-thumb-column">
                 <% IF posters.item(entry.id) %>
+                <% IF read_only %>
+                    <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
+                <% ELSE %>
                 <a class="thumb-link" href="<% request.uri_for('/entry/' _ entry.id) %>">
                     <img class="thumb" src="<% base_url _ 'w92' _ posters.item(entry.id) | html %>" alt="<% entry.title | html %> poster">
                 </a>
                 <% END %>
-                <% IF entry.watched %>
+                <% END %>
+                <% IF read_only %>
+                <div class="watch-status"<% IF !entry.watched %> title="Want to watch"<% END %>><% entry.watched ? '&#10003; Watched' : '👀' %></div>
+                <% ELSIF entry.watched %>
                 <div class="watch-status"><a href="<% request.uri_for('/entry/' _ entry.id _ '/update', { set_watched => 'no' }) %>">&#10003; Watched</a></div>
                 <% ELSE %>
                 <div class="watch-status" title="Want to watch"><a href="<% request.uri_for('/entry/' _ entry.id _ '/update', { set_watched => 'yes' }) %>">👀</a></div>
@@ -54,7 +110,11 @@
             <div class="entry-card-body">
                 <div class="entry-card-body-header">
                     <div>
+                        <% IF read_only %>
+                        <h2 class="entry-title"><% entry.title | html %></h2>
+                        <% ELSE %>
                         <h2 class="entry-title"><a href="<% request.uri_for('/entry/' _ entry.id) %>"><% entry.title | html %></a></h2>
+                        <% END %>
                         <p class="entry-meta"><% movie.year _ ' · ' _ movie.origin_country_names.join(', ') _ ' · ' _ movie.original_language_name _ ' · ' _  movie.info.runtime | html %>&nbsp;minutes</p>
                         <p class="entry-meta"><% movie.director.join(', ') %>, director</p>
                         <p class="entry-meta">Added <% entry.date_added.ymd | html %></p>
@@ -75,6 +135,8 @@
         </li>
     <% END %>
     </ul>
+<% ELSIF read_only %>
+    <p>Nothing to see here yet.
 <% ELSE %>
     <p>No entries found.
     <!-- if we implement search filters then we'll need to conditionalize this next line -->
